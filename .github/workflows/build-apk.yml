@@ -19,8 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -29,13 +28,13 @@ jobs:
           java-version: '21'
 
       - name: Install web dependencies
-        run: npm ci || npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build production web app
         run: npm run build
 
       - name: Install Capacitor Android tooling
-        run: npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/assets@3
+        run: npm install --no-save --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/assets@3
 
       - name: Generate Android project
         run: |
@@ -47,11 +46,12 @@ jobs:
       - name: Generate Android launcher icons and splash screen
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick
+          IM_CMD=$(command -v magick || command -v convert)
           mkdir -p assets
-          convert public/pwa-512x512.png -resize 1024x1024! assets/icon-only.png
-          convert public/pwa-maskable-512x512.png -resize 1024x1024! assets/icon-foreground.png
-          convert -size 1024x1024 xc:"#00D2FF" assets/icon-background.png
-          convert public/pwa-512x512.png -resize 960x960! -gravity center -background "#00D2FF" -extent 2732x2732 assets/splash.png
+          $IM_CMD public/pwa-512x512.png -resize 1024x1024! assets/icon-only.png
+          $IM_CMD public/pwa-maskable-512x512.png -resize 1024x1024! assets/icon-foreground.png
+          $IM_CMD -size 1024x1024 xc:"#00D2FF" assets/icon-background.png
+          $IM_CMD public/pwa-512x512.png -resize 960x960! -gravity center -background "#00D2FF" -extent 2732x2732 assets/splash.png
           npx capacitor-assets generate --android --iconBackgroundColor '#00D2FF' --splashBackgroundColor '#00D2FF'
 
       - name: Build Debug APK with Gradle
