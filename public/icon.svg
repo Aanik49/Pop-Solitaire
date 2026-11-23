@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <pattern id="halftone" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="4.5" fill="#0095CC"/>
+      <circle cx="18" cy="18" r="4.5" fill="#0095CC"/>
+    </pattern>
+    <clipPath id="rounded-bg">
+      <rect width="512" height="512" rx="96" ry="96"/>
+    </clipPath>
+  </defs>
+
+  <!-- Base Icon Canvas -->
+  <g clip-path="url(#rounded-bg)">
+    <rect width="512" height="512" fill="#00D2FF"/>
+    <rect width="512" height="512" fill="url(#halftone)" opacity="0.65"/>
+
+    <!-- Comic Sunburst Rays -->
+    <g transform="translate(256, 256)">
+      <polygon points="0,0 -48,-320 48,-320" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 185,-265 265,-185" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 320,-48 320,48" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 265,185 185,265" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 48,320 -48,320" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 -185,265 -265,185" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 -320,48 -320,-48" fill="#FFE600" opacity="0.85"/>
+      <polygon points="0,0 -265,-185 -185,-265" fill="#FFE600" opacity="0.85"/>
+    </g>
+
+    <!-- Back Card: Ace of Spades tilted left -->
+    <g transform="translate(185, 248) rotate(-16)">
+      <rect x="-86" y="-124" width="182" height="254" rx="22" fill="#0D0D0D"/>
+      <rect x="-96" y="-134" width="182" height="254" rx="22" fill="#FFFDF7" stroke="#0D0D0D" stroke-width="14"/>
+      <path d="M-5,-58 C-46,-14 -60,8 -60,26 C-60,44 -46,56 -30,56 C-18,56 -10,50 -5,42 L-16,74 L6,74 L-5,42 C0,50 8,56 20,56 C36,56 50,44 50,26 C50,8 36,-14 -5,-58 Z" fill="#0D0D0D"/>
+      <path d="M-26,-6 C-38,8 -42,18 -40,28" stroke="#00D2FF" stroke-width="9" stroke-linecap="round" fill="none"/>
+      <text x="-72" y="-76" font-family="Impact, Arial Black, sans-serif" font-size="48" font-weight="900" fill="#0D0D0D">A</text>
+    </g>
+
+    <!-- Front Card: Ace of Hearts tilted right -->
+    <g transform="translate(302, 236) rotate(12)">
+      <rect x="-86" y="-124" width="190" height="264" rx="22" fill="#0D0D0D"/>
+      <rect x="-98" y="-136" width="190" height="264" rx="22" fill="#FFFDF7" stroke="#0D0D0D" stroke-width="14"/>
+      <!-- Yellow Pop Art highlight circle behind Heart -->
+      <circle cx="-3" cy="2" r="66" fill="#FFE600" stroke="#0D0D0D" stroke-width="6"/>
+      <!-- Bold Heart -->
+      <path d="M-3,54 C-3,54 -56,18 -56,-18 C-56,-39 -40,-52 -24,-52 C-12,-52 -6,-44 -3,-36 C0,-44 6,-52 18,-52 C34,-52 50,-39 50,-18 C50,18 -3,54 -3,54 Z" fill="#FF1E42" stroke="#0D0D0D" stroke-width="10" stroke-linejoin="round"/>
+      <path d="M-36,-24 C-36,-33 -29,-39 -22,-39" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <text x="-76" y="-78" font-family="Impact, Arial Black, sans-serif" font-size="52" font-weight="900" fill="#FF1E42" stroke="#0D0D0D" stroke-width="2">A</text>
+    </g>
+
+    <!-- Comic Action Ribbon: POP! -->
+    <g transform="translate(256, 408) rotate(-5)">
+      <rect x="-152" y="-44" width="316" height="92" rx="18" fill="#0D0D0D"/>
+      <rect x="-162" y="-54" width="316" height="92" rx="18" fill="#FF1E42" stroke="#0D0D0D" stroke-width="14"/>
+      <text x="-4" y="16" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="72" font-weight="900" letter-spacing="5" fill="#FFE600" stroke="#0D0D0D" stroke-width="5">POP!</text>
+    </g>
+
+    <!-- Outer Comic Ink Frame -->
+    <rect x="8" y="8" width="496" height="496" rx="88" ry="88" fill="none" stroke="#0D0D0D" stroke-width="16"/>
+  </g>
+</svg>

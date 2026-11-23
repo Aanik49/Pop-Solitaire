@@ -1,0 +1,16 @@
+{
+  "appId": "com.popsolitaire.game",
+  "appName": "POP! Solitaire",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#00D2FF",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#00D2FF",
+      "showSpinner": false
+    }
+  }
+}

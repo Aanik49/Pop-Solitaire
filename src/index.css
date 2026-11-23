@@ -1,0 +1,347 @@
+@import "tailwindcss";
+
+:root {
+  --pop-cyan: #00D2FF;
+  --pop-cyan-dark: #0095CC;
+  --pop-yellow: #FFE600;
+  --pop-red: #FF1E42;
+  --pop-blue: #1D4ED8;
+  --pop-magenta: #FF0099;
+  --pop-green: #00E676;
+  --pop-paper: #FFFDF7;
+  --pop-ink: #0D0D0D;
+
+  /* Responsive card dimensions ensuring all 7 columns fit cleanly from 340px mobile to 1440px+ desktop */
+  --card-w: clamp(42px, 12.2vw, 108px);
+  --card-h: calc(var(--card-w) * 1.4);
+  --border-w: 2.5px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --card-w: clamp(64px, 10.6vw, 110px);
+    --border-w: 3px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --card-w: clamp(82px, 8.6vw, 114px);
+    --border-w: 3.5px;
+  }
+}
+
+/* Prevent accidental text selection and pull-to-refresh during card dragging */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--pop-ink);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Classic Pop Art Ben-Day Halftone Canvas */
+.pop-halftone-bg {
+  background-color: var(--pop-cyan);
+  background-image:
+    radial-gradient(var(--pop-cyan-dark) 21%, transparent 22%),
+    radial-gradient(var(--pop-cyan-dark) 21%, transparent 22%),
+    radial-gradient(circle at 50% 42%, #68EAFF 0%, var(--pop-cyan) 72%);
+  background-size: 16px 16px, 16px 16px, 100% 100%;
+  background-position: 0 0, 8px 8px, 0 0;
+}
+
+.pop-yellow-halftone {
+  background-color: var(--pop-yellow);
+  background-image:
+    radial-gradient(rgba(255, 166, 0, 0.35) 22%, transparent 23%),
+    radial-gradient(rgba(255, 166, 0, 0.35) 22%, transparent 23%);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px;
+}
+
+.font-bangers {
+  font-family: 'Bangers', cursive, sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.comic-text-stroke {
+  -webkit-text-stroke: 1.5px var(--pop-ink);
+  text-shadow: 2px 2px 0 var(--pop-ink);
+}
+
+.comic-title-stroke {
+  -webkit-text-stroke: 2.5px var(--pop-ink);
+  text-shadow: 4px 4px 0 var(--pop-ink);
+}
+
+/* Crisp Comic Hard-Edge Buttons & Panels */
+.pop-panel {
+  border: var(--border-w) solid var(--pop-ink);
+  box-shadow: 5px 5px 0 var(--pop-ink);
+}
+
+.pop-btn {
+  border: var(--border-w) solid var(--pop-ink);
+  box-shadow: 3px 3px 0 var(--pop-ink);
+  transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.pop-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--pop-ink);
+}
+
+.pop-btn:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--pop-ink);
+}
+
+.pop-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pop-btn:focus-visible {
+  outline: 3px solid var(--pop-magenta);
+  outline-offset: 2px;
+}
+
+/* Playing Card Sizing & Tactile Surfaces */
+.card-dimensions {
+  width: var(--card-w);
+  height: var(--card-h);
+}
+
+.card-slot {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: 10px;
+  border: var(--border-w) solid var(--pop-ink);
+  background-color: rgba(255, 255, 255, 0.32);
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.16), 3px 3px 0 rgba(0, 0, 0, 0.22);
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.card-slot-target {
+  background-color: var(--pop-yellow) !important;
+  transform: scale(1.04);
+  box-shadow: 0 0 0 4px var(--pop-magenta), 5px 5px 0 var(--pop-ink) !important;
+}
+
+.playing-card {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: 10px;
+  border: var(--border-w) solid var(--pop-ink);
+  box-shadow: 3.5px 3.5px 0 var(--pop-ink);
+  background-color: var(--pop-paper);
+  overflow: hidden;
+  touch-action: none;
+  will-change: transform;
+}
+
+.playing-card-playable {
+  cursor: grab;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.14s ease;
+}
+
+.playing-card-playable:hover {
+  box-shadow: 5px 5px 0 var(--pop-ink);
+}
+
+.playing-card-dragging {
+  cursor: grabbing;
+  box-shadow: 12px 14px 0 rgba(13, 13, 13, 0.82) !important;
+  pointer-events: none;
+}
+
+.playing-card-hint {
+  box-shadow: 0 0 0 4px var(--pop-green), 6px 6px 0 var(--pop-ink) !important;
+  animation: hintPulse 0.72s ease-in-out infinite alternate;
+}
+
+.playing-card-target {
+  box-shadow: 0 0 0 4px var(--pop-magenta), 6px 6px 0 var(--pop-ink) !important;
+}
+
+/* Pop Art Card Back Patterns */
+.card-back-dots {
+  background-color: var(--pop-red);
+  background-image:
+    radial-gradient(var(--pop-yellow) 24%, transparent 25%),
+    radial-gradient(var(--pop-yellow) 24%, transparent 25%);
+  background-size: 11px 11px;
+  background-position: 0 0, 5.5px 5.5px;
+}
+
+.card-back-stripes {
+  background-color: var(--pop-magenta);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--pop-magenta) 0px,
+    var(--pop-magenta) 6px,
+    var(--pop-yellow) 6px,
+    var(--pop-yellow) 12px
+  );
+}
+
+.card-back-geometric {
+  background-color: var(--pop-blue);
+  background-image:
+    linear-gradient(135deg, var(--pop-cyan) 25%, transparent 25%),
+    linear-gradient(225deg, var(--pop-cyan) 25%, transparent 25%),
+    linear-gradient(45deg, var(--pop-yellow) 25%, transparent 25%),
+    linear-gradient(315deg, var(--pop-yellow) 25%, var(--pop-blue) 25%);
+  background-position: 8px 0, 8px 0, 0 0, 0 0;
+  background-size: 16px 16px;
+}
+
+.card-back-checker {
+  background-color: var(--pop-green);
+  background-image:
+    linear-gradient(45deg, #0D0D0D 25%, transparent 25%, transparent 75%, #0D0D0D 75%, #0D0D0D),
+    linear-gradient(45deg, #0D0D0D 25%, var(--pop-yellow) 25%, var(--pop-yellow) 75%, #0D0D0D 75%, #0D0D0D);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px;
+}
+
+/* Pop Art Card Front Halftone Overlay */
+.card-front-dots-black {
+  background-image: radial-gradient(rgba(0, 210, 255, 0.22) 20%, transparent 21%);
+  background-size: 8px 8px;
+}
+
+.card-front-dots-red {
+  background-image: radial-gradient(rgba(255, 230, 0, 0.36) 22%, transparent 23%);
+  background-size: 8px 8px;
+}
+
+/* Animations */
+@keyframes hintPulse {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(-6px) scale(1.03);
+  }
+}
+
+@keyframes cardFlipReveal {
+  0% {
+    transform: perspective(600px) rotateY(90deg) scale(1.04);
+  }
+  100% {
+    transform: perspective(600px) rotateY(0deg) scale(1);
+  }
+}
+
+.animate-card-flip {
+  animation: cardFlipReveal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardLandPop {
+  0% {
+    transform: scale(1.06) translateY(-5px);
+  }
+  60% {
+    transform: scale(0.98) translateY(1px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-card-land {
+  animation: cardLandPop 0.19s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardDealIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(-110px, -110px, 0) scale(0.75) rotate(-10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+.animate-card-deal {
+  animation: cardDealIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardShake {
+  0%, 100% { transform: translateX(0); }
+  22% { transform: translateX(-6px) rotate(-2deg); }
+  48% { transform: translateX(6px) rotate(2deg); }
+  74% { transform: translateX(-4px) rotate(-1deg); }
+}
+
+.animate-card-shake {
+  animation: cardShake 0.24s ease-in-out;
+}
+
+@keyframes comicPopBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.18) rotate(-16deg);
+    opacity: 0;
+  }
+  32% {
+    transform: translate(-50%, -50%) scale(1.16) rotate(5deg);
+    opacity: 1;
+  }
+  65% {
+    transform: translate(-50%, -56%) scale(0.97) rotate(-2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -92%) scale(1.06) rotate(2deg);
+    opacity: 0;
+  }
+}
+
+.animate-comic-burst {
+  animation: comicPopBurst 0.82s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 24s linear infinite;
+}
+
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0px) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-10px) rotate(calc(var(--r, 0deg) + 2deg)); }
+}
+
+.animate-float-card {
+  animation: floatCard 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-float-card,
+  .playing-card-hint {
+    animation: none !important;
+  }
+  .animate-card-deal,
+  .animate-card-flip,
+  .animate-card-land {
+    animation-duration: 0.01ms !important;
+  }
+}
