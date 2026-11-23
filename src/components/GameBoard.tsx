@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { RotateCw } from 'lucide-react';
+import { RotateCw, Zap } from 'lucide-react';
 import { Card, CardBackStyle, CardSource, GameState, MoveHint, MoveTarget } from '../game/types';
 import { canMoveToFoundation, canMoveToTableau } from '../game/solitaireEngine';
 import { CardBackGraphic, PlayingCardView } from './CardArt';
@@ -12,6 +12,8 @@ interface GameBoardProps {
   lastLandedCardIds: string[];
   shakingCardId: string | null;
   isNewDealAnim: boolean;
+  autoCompleteAvailable: boolean;
+  onTriggerAutoComplete: () => void;
   onStockClick: () => void;
   onExecuteMove: (source: CardSource, target: MoveTarget, coords: { x: number; y: number }) => boolean;
   onSmartTap: (source: CardSource, coords: { x: number; y: number }) => boolean;
@@ -41,6 +43,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   lastLandedCardIds,
   shakingCardId,
   isNewDealAnim,
+  autoCompleteAvailable,
+  onTriggerAutoComplete,
   onStockClick,
   onExecuteMove,
   onSmartTap,
@@ -305,12 +309,61 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const hintedSet = new Set(hint?.cardIds ?? []);
   const landedSet = new Set(lastLandedCardIds);
 
+  // Pre-compute tableau card vertical offsets so we also know the exact lowest card bottom for the Finish button
+  const defaultFaceDownStep = Math.max(10, Math.min(18, boardMetrics.cardHeight * 0.145));
+  const defaultFaceUpStep = Math.max(20, Math.min(34, boardMetrics.cardHeight * 0.275));
+
+  let maxTableauBottomPx = 0;
+  let totalTableauCards = 0;
+
+  const tableauLayouts = gameState.tableau.map((col) => {
+    totalTableauCards += col.length;
+    let totalNeeded = boardMetrics.cardHeight;
+    for (let k = 0; k < col.length - 1; k++) {
+      totalNeeded += col[k].faceUp ? defaultFaceUpStep : defaultFaceDownStep;
+    }
+
+    const compression =
+      totalNeeded > boardMetrics.availTableauHeight && totalNeeded > boardMetrics.cardHeight
+        ? Math.max(
+            0.42,
+            (boardMetrics.availTableauHeight - boardMetrics.cardHeight) /
+              (totalNeeded - boardMetrics.cardHeight)
+          )
+        : 1;
+
+    const effectiveFaceUpStep = Math.round(defaultFaceUpStep * compression);
+    const effectiveFaceDownStep = Math.round(defaultFaceDownStep * compression);
+
+    let runningY = 0;
+    const offsets = col.map((c) => {
+      const y = runningY;
+      runningY += c.faceUp ? effectiveFaceUpStep : effectiveFaceDownStep;
+      return y;
+    });
+
+    if (col.length > 0) {
+      const colBottom = offsets[col.length - 1] + boardMetrics.cardHeight;
+      if (colBottom > maxTableauBottomPx) {
+        maxTableauBottomPx = colBottom;
+      }
+    }
+
+    return { offsets, effectiveFaceUpStep };
+  });
+
+  // Position Finish button: center of screen if no tableau cards remain, otherwise cleanly below lowest card line
+  const finishButtonTopPx = Math.min(
+    maxTableauBottomPx + 20,
+    Math.max(24, boardMetrics.availTableauHeight - 68)
+  );
+
   return (
     <main
       ref={boardRef}
-      className="flex-1 w-full max-w-[1040px] mx-auto px-2 sm:px-4 pt-2.5 pb-2 flex flex-col gap-3 sm:gap-5 relative overflow-hidden"
+      className="flex-1 w-full max-w-[1040px] mx-auto px-2 sm:px-4 pt-3 pb-2 flex flex-col gap-6 sm:gap-8 relative overflow-hidden"
     >
-      {/* Top Row: Stock, Waste, Spacer, and 4 Foundations */}
+      {/* Top Row: Stock, Waste (with extra visual gap), Spacer, and 4 Foundations */}
       <section
         ref={topRowRef}
         className="grid grid-cols-7 justify-between items-start w-full"
@@ -366,8 +419,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           )}
         </div>
 
-        {/* Waste Pile */}
-        <div className="card-slot relative" aria-label="Waste Pile">
+        {/* Waste Pile (shifted slightly into spacer column for a crisp gap from Stock stack) */}
+        <div className="card-slot relative translate-x-1.5 sm:translate-x-3" aria-label="Waste Pile">
           {gameState.waste.slice(wasteStartIdx).map((card, localIdx) => {
             const actualIndex = wasteStartIdx + localIdx;
             const isTop = actualIndex === gameState.waste.length - 1;
@@ -482,34 +535,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             hoverTarget?.type === 'tableau' && hoverTarget.index === colIdx;
           const isHintTarget =
             hint?.target?.type === 'tableau' && hint.target.index === colIdx;
-
-          // Responsive vertical compression so tall stacks remain fully visible
-          const defaultFaceDownStep = Math.max(10, Math.min(18, boardMetrics.cardHeight * 0.145));
-          const defaultFaceUpStep = Math.max(20, Math.min(34, boardMetrics.cardHeight * 0.275));
-
-          let totalNeeded = boardMetrics.cardHeight;
-          for (let k = 0; k < col.length - 1; k++) {
-            totalNeeded += col[k].faceUp ? defaultFaceUpStep : defaultFaceDownStep;
-          }
-
-          const compression =
-            totalNeeded > boardMetrics.availTableauHeight && totalNeeded > boardMetrics.cardHeight
-              ? Math.max(
-                  0.42,
-                  (boardMetrics.availTableauHeight - boardMetrics.cardHeight) /
-                    (totalNeeded - boardMetrics.cardHeight)
-                )
-              : 1;
-
-          const effectiveFaceUpStep = Math.round(defaultFaceUpStep * compression);
-          const effectiveFaceDownStep = Math.round(defaultFaceDownStep * compression);
-
-          let runningY = 0;
-          const cardOffsets = col.map((c) => {
-            const y = runningY;
-            runningY += c.faceUp ? effectiveFaceUpStep : effectiveFaceDownStep;
-            return y;
-          });
+          const { offsets: cardOffsets, effectiveFaceUpStep } = tableauLayouts[colIdx];
 
           return (
             <div
@@ -572,6 +598,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           );
         })}
+
+        {/* Dynamic Auto-Complete FINISH! Button:
+            Shows in the middle of the screen if no cards remain on tableau, or cleanly below the lowest card line */}
+        {autoCompleteAvailable && (
+          <div
+            className="absolute left-1/2 z-[700] pointer-events-auto"
+            style={
+              totalTableauCards === 0
+                ? { top: '42%', transform: 'translate(-50%, -50%)' }
+                : { top: `${finishButtonTopPx}px`, transform: 'translateX(-50%)' }
+            }
+          >
+            <button
+              type="button"
+              onClick={onTriggerAutoComplete}
+              className="pop-btn play-btn-glow bg-[#00E676] hover:bg-[#19FF8C] text-[#0D0D0D] font-bangers text-2xl sm:text-3xl px-7 py-2.5 rounded-2xl tracking-wider flex items-center gap-2 whitespace-nowrap"
+              title="Auto-complete remaining cards"
+            >
+              <Zap className="w-6 h-6 fill-[#0D0D0D] relative z-10" strokeWidth={2.6} />
+              <span className="relative z-10">FINISH!</span>
+            </button>
+          </div>
+        )}
       </section>
 
       {/* GPU-Composited Floating Drag Layer (zero React re-renders during pointermove!) */}

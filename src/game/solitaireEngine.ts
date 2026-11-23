@@ -1,4 +1,14 @@
-import { Card, CardSource, DrawMode, GameState, MoveHint, MoveTarget, PlayerStats, Suit } from './types';
+import {
+  Card,
+  CardSource,
+  DailyChallengeRecord,
+  DrawMode,
+  GameState,
+  MoveHint,
+  MoveTarget,
+  PlayerStats,
+  Suit,
+} from './types';
 
 export const SUITS: Suit[] = ['spades', 'hearts', 'clubs', 'diamonds'];
 
@@ -37,13 +47,49 @@ export function createDeck(): Card[] {
   return deck;
 }
 
-export function shuffleDeck(cards: Card[]): Card[] {
+export function shuffleDeck(cards: Card[], rng: () => number = Math.random): Card[] {
   const copy = [...cards];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+}
+
+/** Deterministic string hash (FNV-1a 32-bit) + Mulberry32 PRNG for worldwide Daily Challenge deals */
+function hashStringToSeed(input: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function createMulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function getTodayDateKey(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function formatDailyDateLabel(dateKey: string): string {
+  const parts = dateKey.split('-').map(Number);
+  if (parts.length !== 3) return dateKey;
+  const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export function cloneGameState(state: GameState): GameState {
@@ -58,21 +104,26 @@ export function cloneGameState(state: GameState): GameState {
 
 let globalDealCounter = 1;
 
-export function dealNewGame(drawMode: DrawMode): GameState {
-  const deck = shuffleDeck(createDeck());
+function dealFromDeck(
+  deck: Card[],
+  drawMode: DrawMode,
+  isDailyChallenge: boolean,
+  dailyDateKey: string | null
+): GameState {
+  const working = [...deck];
   const tableau: Card[][] = [[], [], [], [], [], [], []];
 
   // Classic Klondike Deal: Column i receives i+1 cards, top card face-up
   for (let col = 0; col < 7; col++) {
     for (let row = 0; row <= col; row++) {
-      const card = deck.pop()!;
+      const card = working.pop()!;
       card.faceUp = row === col;
       tableau[col].push(card);
     }
   }
 
   return {
-    stock: deck, // remaining 24 cards face-down
+    stock: working, // remaining 24 cards face-down
     waste: [],
     foundations: [[], [], [], []],
     tableau,
@@ -81,7 +132,24 @@ export function dealNewGame(drawMode: DrawMode): GameState {
     recycleCount: 0,
     drawMode,
     dealId: globalDealCounter++,
+    isDailyChallenge,
+    dailyDateKey,
   };
+}
+
+export function dealNewGame(drawMode: DrawMode): GameState {
+  const deck = shuffleDeck(createDeck());
+  return dealFromDeck(deck, drawMode, false, null);
+}
+
+/**
+ * Generates the exact same pre-seeded Klondike Solitaire layout for all players on a given calendar date.
+ */
+export function dealDailyChallenge(dateKey: string = getTodayDateKey()): GameState {
+  const seed = hashStringToSeed(`pop-solitaire-daily-v1::${dateKey}`);
+  const rng = createMulberry32(seed);
+  const deck = shuffleDeck(createDeck(), rng);
+  return dealFromDeck(deck, 1, true, dateKey);
 }
 
 /**
@@ -485,6 +553,61 @@ export function recordWinStats(score: number, seconds: number): PlayerStats {
     localStorage.setItem(STATS_KEY, JSON.stringify(next));
   } catch {
     // Ignore quota errors
+  }
+  return next;
+}
+
+const DAILY_STORAGE_KEY = 'pop_solitaire_daily_v1';
+
+export function loadDailyRecord(): DailyChallengeRecord {
+  try {
+    const raw = localStorage.getItem(DAILY_STORAGE_KEY);
+    if (!raw) return { completedDates: [], streak: 0, lastCompletedDate: null };
+    const parsed = JSON.parse(raw) as Partial<DailyChallengeRecord>;
+    return {
+      completedDates: Array.isArray(parsed.completedDates) ? parsed.completedDates : [],
+      streak: typeof parsed.streak === 'number' ? parsed.streak : 0,
+      lastCompletedDate: typeof parsed.lastCompletedDate === 'string' ? parsed.lastCompletedDate : null,
+    };
+  } catch {
+    return { completedDates: [], streak: 0, lastCompletedDate: null };
+  }
+}
+
+export function isDailyCompleted(record: DailyChallengeRecord, dateKey: string = getTodayDateKey()): boolean {
+  return record.completedDates.includes(dateKey);
+}
+
+function getPreviousDateKey(dateKey: string): string {
+  const parts = dateKey.split('-').map(Number);
+  if (parts.length !== 3) return '';
+  const dt = new Date(parts[0], parts[1] - 1, parts[2] - 1);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const d = String(dt.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function recordDailyWin(dateKey: string = getTodayDateKey()): DailyChallengeRecord {
+  const prev = loadDailyRecord();
+  if (prev.completedDates.includes(dateKey)) {
+    return prev;
+  }
+
+  const yesterday = getPreviousDateKey(dateKey);
+  const nextStreak = prev.lastCompletedDate === yesterday ? prev.streak + 1 : 1;
+  const completedDates = [...prev.completedDates.slice(-60), dateKey];
+
+  const next: DailyChallengeRecord = {
+    completedDates,
+    streak: nextStreak,
+    lastCompletedDate: dateKey,
+  };
+
+  try {
+    localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // Ignore storage errors
   }
   return next;
 }

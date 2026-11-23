@@ -7,12 +7,14 @@ import {
   VolumeX,
   Music,
   Pause,
-  Zap,
+  Calendar,
 } from 'lucide-react';
 import {
+  BackgroundTheme,
   CalloutBurst,
   CardBackStyle,
   CardSource,
+  DailyChallengeRecord,
   DrawMode,
   GameState,
   MoveHint,
@@ -23,17 +25,24 @@ import {
 import {
   canAutoComplete,
   cloneGameState,
+  dealDailyChallenge,
   dealNewGame,
   drawFromStock,
   executeMove,
   findBestHint,
   findSmartMove,
+  formatDailyDateLabel,
   getNextAutoCompleteMove,
+  getTodayDateKey,
+  isDailyCompleted,
   isGameWon,
+  loadDailyRecord,
   loadPlayerStats,
+  recordDailyWin,
   recordWinStats,
 } from './game/solitaireEngine';
 import { soundEngine } from './audio/soundEngine';
+import { IntroSplash } from './components/IntroSplash';
 import { SplashScreen } from './components/SplashScreen';
 import { GameBoard } from './components/GameBoard';
 import { ComicCalloutLayer } from './components/ComicCalloutLayer';
@@ -50,6 +59,7 @@ function formatTime(secs: number): string {
 }
 
 const CARD_BACK_STORAGE_KEY = 'pop_solitaire_card_back_v1';
+const BG_THEME_STORAGE_KEY = 'pop_solitaire_bg_theme_v1';
 
 function loadSavedCardBack(): CardBackStyle {
   try {
@@ -63,10 +73,23 @@ function loadSavedCardBack(): CardBackStyle {
   return 'dots';
 }
 
+function loadSavedBackgroundTheme(): BackgroundTheme {
+  try {
+    const raw = localStorage.getItem(BG_THEME_STORAGE_KEY);
+    if (raw === 'cyan' || raw === 'mint' || raw === 'lavender' || raw === 'peach') {
+      return raw;
+    }
+  } catch {
+    // ignore storage restrictions
+  }
+  return 'cyan';
+}
+
 export default function App() {
-  const [screen, setScreen] = useState<ScreenState>('SPLASH');
+  const [screen, setScreen] = useState<ScreenState>('INTRO');
   const [drawMode, setDrawMode] = useState<DrawMode>(1);
   const [cardBackStyle, setCardBackStyle] = useState<CardBackStyle>(() => loadSavedCardBack());
+  const [backgroundTheme, setBackgroundTheme] = useState<BackgroundTheme>(() => loadSavedBackgroundTheme());
   const [gameState, setGameState] = useState<GameState>(() => dealNewGame(1));
   const [undoStack, setUndoStack] = useState<GameState[]>([]);
   const [seconds, setSeconds] = useState<number>(0);
@@ -75,6 +98,11 @@ export default function App() {
   const [sfxEnabled, setSfxEnabled] = useState<boolean>(() => soundEngine.isSfxEnabled());
   const [musicEnabled, setMusicEnabled] = useState<boolean>(() => soundEngine.isMusicEnabled());
   const [stats, setStats] = useState<PlayerStats>(() => loadPlayerStats());
+  const [dailyRecord, setDailyRecord] = useState<DailyChallengeRecord>(() => loadDailyRecord());
+
+  const todayDateKey = getTodayDateKey();
+  const todayDateLabel = formatDailyDateLabel(todayDateKey);
+  const isDailyWinnerToday = isDailyCompleted(dailyRecord, todayDateKey);
 
   const [hint, setHint] = useState<MoveHint | null>(null);
   const [callouts, setCallouts] = useState<CalloutBurst[]>([]);
@@ -155,6 +183,44 @@ export default function App() {
     [clearTransientAnimFlags, spawnCallout]
   );
 
+  const startDailyChallenge = useCallback(() => {
+    if (autoCompleteTimerRef.current !== null) {
+      window.clearTimeout(autoCompleteTimerRef.current);
+      autoCompleteTimerRef.current = null;
+    }
+    if (dealAnimTimerRef.current !== null) {
+      window.clearTimeout(dealAnimTimerRef.current);
+    }
+
+    const dateKey = getTodayDateKey();
+    setIsAutoCompleting(false);
+    setHint(null);
+    clearTransientAnimFlags();
+    setUndoStack([]);
+    setSeconds(0);
+    setTimerActive(false);
+    setGameState(dealDailyChallenge(dateKey));
+    setScreen('PLAYING');
+    setIsNewDealAnim(true);
+
+    soundEngine.unlockAndStartMusic();
+    soundEngine.playShuffle();
+
+    dealAnimTimerRef.current = window.setTimeout(() => {
+      setIsNewDealAnim(false);
+    }, 650);
+
+    spawnCallout('DAILY!', window.innerWidth / 2, window.innerHeight * 0.36, '#FF0099');
+  }, [clearTransientAnimFlags, spawnCallout]);
+
+  const handleDealOrRestart = useCallback(() => {
+    if (gameState.isDailyChallenge) {
+      startDailyChallenge();
+    } else {
+      startFreshDeal(drawMode, true);
+    }
+  }, [drawMode, gameState.isDailyChallenge, startDailyChallenge, startFreshDeal]);
+
   const handleToggleSfx = useCallback(() => {
     const next = !sfxEnabled;
     setSfxEnabled(next);
@@ -175,16 +241,30 @@ export default function App() {
   }, []);
 
   const handleToggleDrawModeInGame = useCallback(() => {
+    if (gameState.isDailyChallenge) {
+      startFreshDeal(drawMode, true);
+      return;
+    }
     const nextMode: DrawMode = drawMode === 1 ? 3 : 1;
     setDrawMode(nextMode);
     startFreshDeal(nextMode, true);
-  }, [drawMode, startFreshDeal]);
+  }, [drawMode, gameState.isDailyChallenge, startFreshDeal]);
 
   const handleSelectCardBack = useCallback((style: CardBackStyle) => {
     setCardBackStyle(style);
     soundEngine.playButton();
     try {
       localStorage.setItem(CARD_BACK_STORAGE_KEY, style);
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  const handleSelectBackgroundTheme = useCallback((theme: BackgroundTheme) => {
+    setBackgroundTheme(theme);
+    soundEngine.playButton();
+    try {
+      localStorage.setItem(BG_THEME_STORAGE_KEY, theme);
     } catch {
       // ignore storage errors
     }
@@ -219,6 +299,10 @@ export default function App() {
       spawnCallout('BOOM!', window.innerWidth / 2, window.innerHeight / 2, '#FF1E42');
       const updatedStats = recordWinStats(nextState.score, seconds);
       setStats(updatedStats);
+      if (nextState.isDailyChallenge) {
+        const updatedDaily = recordDailyWin(nextState.dailyDateKey ?? getTodayDateKey());
+        setDailyRecord(updatedDaily);
+      }
       window.setTimeout(() => {
         setScreen('VICTORY');
       }, 520);
@@ -393,22 +477,32 @@ export default function App() {
   const timeFormatted = formatTime(seconds);
 
   return (
-    <div className="w-full h-full flex flex-col pop-halftone-bg overflow-hidden relative">
-      {screen === 'SPLASH' ? (
+    <div className={`w-full h-full flex flex-col bg-theme-${backgroundTheme} overflow-hidden relative`}>
+      {screen === 'INTRO' ? (
+        <IntroSplash
+          backgroundTheme={backgroundTheme}
+          onComplete={() => setScreen('SPLASH')}
+        />
+      ) : screen === 'SPLASH' ? (
         <SplashScreen
+          backgroundTheme={backgroundTheme}
           drawMode={drawMode}
           sfxEnabled={sfxEnabled}
           musicEnabled={musicEnabled}
+          dailyDateLabel={todayDateLabel}
+          isDailyWinner={isDailyWinnerToday}
+          dailyStreak={dailyRecord.streak}
           onSelectDrawMode={handleSelectDrawModeOnSplash}
           onToggleSfx={handleToggleSfx}
           onToggleMusic={handleToggleMusic}
           onStartGame={() => startFreshDeal(drawMode, true)}
+          onStartDailyChallenge={startDailyChallenge}
         />
       ) : (
         <>
           {/* Responsive Pop Art Comic Game HUD: zero clipping from 320px mobile to 1440px+ desktop */}
           <header className="w-full bg-[#FFE600] border-b-[3.5px] border-[#0D0D0D] px-2 sm:px-4 py-1.5 sm:py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2 z-50 shadow-[0_4px_0_#0D0D0D] shrink-0">
-            {/* Row 1 (mobile) / Left+Center (desktop): Brand, Draw Mode, and Scoreboard */}
+            {/* Row 1 (mobile) / Left+Center (desktop): Brand, Draw Mode / Daily Tag, and Scoreboard */}
             <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto min-w-0">
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
@@ -423,14 +517,29 @@ export default function App() {
                   POP! SOLITAIRE
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleToggleDrawModeInGame}
-                  className="hidden md:inline-flex pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm sm:text-base px-2.5 py-1 rounded-lg tracking-wide whitespace-nowrap"
-                  title="Switch Draw 1 / Draw 3 and deal new game"
-                >
-                  DRAW {drawMode}
-                </button>
+                {gameState.isDailyChallenge ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.playButton();
+                      setScreen('PAUSED');
+                    }}
+                    className="hidden md:inline-flex pop-btn bg-[#FF0099] text-white font-bangers text-sm sm:text-base px-2.5 py-1 rounded-lg tracking-wide items-center gap-1 whitespace-nowrap"
+                    title="Daily Challenge · Pre-seeded worldwide layout"
+                  >
+                    <Calendar className="w-3.5 h-3.5 shrink-0" strokeWidth={2.8} />
+                    <span>DAILY · {todayDateLabel}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleToggleDrawModeInGame}
+                    className="hidden md:inline-flex pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm sm:text-base px-2.5 py-1 rounded-lg tracking-wide whitespace-nowrap"
+                    title="Switch Draw 1 / Draw 3 and deal new game"
+                  >
+                    DRAW {drawMode}
+                  </button>
+                )}
               </div>
 
               {/* Clean Unboxed Tabular Scoreboard Strip (visible on all screen widths) */}
@@ -460,31 +569,31 @@ export default function App() {
 
             {/* Row 2 (mobile) / Right Zone (desktop): Full Action Toolbar — never clipped! */}
             <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto shrink-0">
-              <button
-                type="button"
-                onClick={handleToggleDrawModeInGame}
-                className="sm:hidden pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm px-2.5 py-1 rounded-lg tracking-wide whitespace-nowrap shrink-0"
-                title="Switch Draw 1 / Draw 3"
-              >
-                DRAW {drawMode}
-              </button>
+              {gameState.isDailyChallenge ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundEngine.playButton();
+                    setScreen('PAUSED');
+                  }}
+                  className="sm:hidden pop-btn bg-[#FF0099] text-white font-bangers text-sm px-2.5 py-1 rounded-lg tracking-wide inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                  title="Daily Challenge"
+                >
+                  <Calendar className="w-3.5 h-3.5 shrink-0" strokeWidth={2.8} />
+                  <span>DAILY</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleToggleDrawModeInGame}
+                  className="sm:hidden pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm px-2.5 py-1 rounded-lg tracking-wide whitespace-nowrap shrink-0"
+                  title="Switch Draw 1 / Draw 3"
+                >
+                  DRAW {drawMode}
+                </button>
+              )}
 
               <div className="flex items-center gap-1.5 shrink-0">
-                {autoCompleteAvailable && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      soundEngine.playButton();
-                      setIsAutoCompleting(true);
-                    }}
-                    className="pop-btn bg-[#00E676] text-[#0D0D0D] font-bangers text-sm sm:text-base px-2.5 py-1 rounded-lg flex items-center gap-1 animate-bounce whitespace-nowrap"
-                    title="Auto-complete remaining cards"
-                  >
-                    <Zap className="w-4 h-4 fill-[#0D0D0D]" strokeWidth={2.5} />
-                    <span>FINISH!</span>
-                  </button>
-                )}
-
                 <button
                   type="button"
                   onClick={handleHint}
@@ -534,13 +643,13 @@ export default function App() {
 
                 <button
                   type="button"
-                  onClick={() => startFreshDeal(drawMode, true)}
+                  onClick={handleDealOrRestart}
                   className="pop-btn bg-[#FF1E42] text-white font-bangers text-sm sm:text-base px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center gap-1 whitespace-nowrap"
-                  title="Deal New Game"
-                  aria-label="New Deal"
+                  title={gameState.isDailyChallenge ? 'Restart Today’s Daily Deal' : 'Deal New Game'}
+                  aria-label={gameState.isDailyChallenge ? 'Restart Daily' : 'New Deal'}
                 >
                   <RotateCcw className="w-4 h-4" strokeWidth={2.8} />
-                  <span className="hidden md:inline">DEAL</span>
+                  <span className="hidden md:inline">{gameState.isDailyChallenge ? 'RETRY' : 'DEAL'}</span>
                 </button>
 
                 <button
@@ -568,6 +677,11 @@ export default function App() {
             lastLandedCardIds={lastLandedCardIds}
             shakingCardId={shakingCardId}
             isNewDealAnim={isNewDealAnim}
+            autoCompleteAvailable={autoCompleteAvailable}
+            onTriggerAutoComplete={() => {
+              soundEngine.playButton();
+              setIsAutoCompleting(true);
+            }}
             onStockClick={handleStockClick}
             onExecuteMove={handleExecuteMove}
             onSmartTap={handleSmartTap}
@@ -579,16 +693,21 @@ export default function App() {
           {screen === 'PAUSED' && (
             <PauseModal
               drawMode={drawMode}
+              isDailyChallenge={gameState.isDailyChallenge}
+              dailyDateLabel={todayDateLabel}
               cardBackStyle={cardBackStyle}
+              backgroundTheme={backgroundTheme}
               sfxEnabled={sfxEnabled}
               musicEnabled={musicEnabled}
               onResume={() => {
                 soundEngine.playButton();
                 setScreen('PLAYING');
               }}
-              onNewDeal={() => startFreshDeal(drawMode, true)}
+              onNewDeal={handleDealOrRestart}
+              onStartDailyChallenge={startDailyChallenge}
               onToggleDrawMode={handleToggleDrawModeInGame}
               onSelectCardBack={handleSelectCardBack}
+              onSelectBackgroundTheme={handleSelectBackgroundTheme}
               onToggleSfx={handleToggleSfx}
               onToggleMusic={handleToggleMusic}
               onReturnToTitle={() => {
@@ -598,13 +717,15 @@ export default function App() {
             />
           )}
 
-          {/* Victory Waterfall & Comic Modal */}
+          {/* Victory Waterfall, Comic Confetti & Celebration Modal */}
           {screen === 'VICTORY' && (
             <VictoryOverlay
               score={gameState.score}
               moves={gameState.moves}
               timeFormatted={timeFormatted}
               stats={stats}
+              isDailyChallenge={gameState.isDailyChallenge}
+              dailyDateLabel={gameState.dailyDateKey ? formatDailyDateLabel(gameState.dailyDateKey) : null}
               onPlayAgain={() => startFreshDeal(drawMode, true)}
               onReturnToTitle={() => {
                 soundEngine.playButton();

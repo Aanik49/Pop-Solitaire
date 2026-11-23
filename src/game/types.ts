@@ -1,8 +1,9 @@
 export type Suit = 'spades' | 'hearts' | 'clubs' | 'diamonds';
 export type CardColor = 'red' | 'black';
 export type DrawMode = 1 | 3;
-export type ScreenState = 'SPLASH' | 'PLAYING' | 'PAUSED' | 'VICTORY';
+export type ScreenState = 'INTRO' | 'SPLASH' | 'PLAYING' | 'PAUSED' | 'VICTORY';
 export type CardBackStyle = 'dots' | 'stripes' | 'geometric' | 'checker';
+export type BackgroundTheme = 'cyan' | 'mint' | 'lavender' | 'peach';
 
 export interface Card {
   id: string;
@@ -37,6 +38,8 @@ export interface GameState {
   recycleCount: number;
   drawMode: DrawMode;
   dealId: number; // increments each new deal for entrance animation keys
+  isDailyChallenge: boolean;
+  dailyDateKey: string | null;
 }
 
 export interface MoveHint {
@@ -58,4 +61,10 @@ export interface PlayerStats {
   bestScore: number;
   wins: number;
   fastestWinSecs: number | null;
+}
+
+export interface DailyChallengeRecord {
+  completedDates: string[];
+  streak: number;
+  lastCompletedDate: string | null;
 }

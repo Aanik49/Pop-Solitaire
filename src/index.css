@@ -11,22 +11,22 @@
   --pop-paper: #FFFDF7;
   --pop-ink: #0D0D0D;
 
-  /* Responsive card dimensions ensuring all 7 columns fit cleanly from 340px mobile to 1440px+ desktop */
-  --card-w: clamp(42px, 12.2vw, 108px);
+  /* Responsive card dimensions ensuring crisp horizontal gaps across all 7 columns */
+  --card-w: clamp(40px, 11.7vw, 106px);
   --card-h: calc(var(--card-w) * 1.4);
   --border-w: 2.5px;
 }
 
 @media (min-width: 640px) {
   :root {
-    --card-w: clamp(64px, 10.6vw, 110px);
+    --card-w: clamp(62px, 10.2vw, 108px);
     --border-w: 3px;
   }
 }
 
 @media (min-width: 1024px) {
   :root {
-    --card-w: clamp(82px, 8.6vw, 114px);
+    --card-w: clamp(80px, 8.4vw, 112px);
     --border-w: 3.5px;
   }
 }
@@ -49,15 +49,46 @@ body,
   -webkit-touch-callout: none;
 }
 
-/* Classic Pop Art Ben-Day Halftone Canvas */
-.pop-halftone-bg {
-  background-color: var(--pop-cyan);
+/* Softened Pop Art Ben-Day Halftone Table Backgrounds (reduced pattern opacity for sharp card focus) */
+.pop-halftone-bg,
+.bg-theme-cyan {
+  background-color: #36C8EA;
   background-image:
-    radial-gradient(var(--pop-cyan-dark) 21%, transparent 22%),
-    radial-gradient(var(--pop-cyan-dark) 21%, transparent 22%),
-    radial-gradient(circle at 50% 42%, #68EAFF 0%, var(--pop-cyan) 72%);
-  background-size: 16px 16px, 16px 16px, 100% 100%;
-  background-position: 0 0, 8px 8px, 0 0;
+    radial-gradient(rgba(0, 120, 168, 0.22) 20%, transparent 21%),
+    radial-gradient(rgba(0, 120, 168, 0.22) 20%, transparent 21%),
+    radial-gradient(circle at 50% 42%, rgba(135, 234, 255, 0.55) 0%, rgba(44, 198, 234, 0.92) 76%);
+  background-size: 18px 18px, 18px 18px, 100% 100%;
+  background-position: 0 0, 9px 9px, 0 0;
+}
+
+.bg-theme-mint {
+  background-color: #2FC49B;
+  background-image:
+    radial-gradient(rgba(11, 107, 81, 0.2) 20%, transparent 21%),
+    radial-gradient(rgba(11, 107, 81, 0.2) 20%, transparent 21%),
+    radial-gradient(circle at 50% 42%, rgba(126, 236, 202, 0.52) 0%, rgba(42, 186, 146, 0.92) 76%);
+  background-size: 18px 18px, 18px 18px, 100% 100%;
+  background-position: 0 0, 9px 9px, 0 0;
+}
+
+.bg-theme-lavender {
+  background-color: #8B7FE8;
+  background-image:
+    radial-gradient(rgba(55, 42, 138, 0.2) 20%, transparent 21%),
+    radial-gradient(rgba(55, 42, 138, 0.2) 20%, transparent 21%),
+    radial-gradient(circle at 50% 42%, rgba(186, 178, 252, 0.5) 0%, rgba(126, 114, 224, 0.92) 76%);
+  background-size: 18px 18px, 18px 18px, 100% 100%;
+  background-position: 0 0, 9px 9px, 0 0;
+}
+
+.bg-theme-peach {
+  background-color: #F4977E;
+  background-image:
+    radial-gradient(rgba(166, 62, 36, 0.18) 20%, transparent 21%),
+    radial-gradient(rgba(166, 62, 36, 0.18) 20%, transparent 21%),
+    radial-gradient(circle at 50% 42%, rgba(255, 204, 184, 0.55) 0%, rgba(236, 141, 116, 0.92) 76%);
+  background-size: 18px 18px, 18px 18px, 100% 100%;
+  background-position: 0 0, 9px 9px, 0 0;
 }
 
 .pop-yellow-halftone {
@@ -333,10 +364,54 @@ body,
   animation: floatCard 3.6s ease-in-out infinite;
 }
 
+/* Play Button Glow Pulse & Glossy Diagonal Shine Sweep */
+@keyframes playGlowPulse {
+  0%, 100% {
+    box-shadow: 4px 4px 0 var(--pop-ink), 0 0 14px rgba(0, 230, 118, 0.7), 0 0 28px rgba(255, 230, 0, 0.45);
+  }
+  50% {
+    box-shadow: 4px 4px 0 var(--pop-ink), 0 0 24px rgba(0, 230, 118, 0.98), 0 0 44px rgba(255, 230, 0, 0.85);
+  }
+}
+
+@keyframes shineSweep {
+  0% {
+    transform: translateX(-140%) skewX(-24deg);
+  }
+  38%, 100% {
+    transform: translateX(260%) skewX(-24deg);
+  }
+}
+
+.play-btn-glow {
+  position: relative;
+  overflow: hidden;
+  animation: playGlowPulse 2.1s ease-in-out infinite;
+}
+
+.play-btn-glow::after {
+  content: '';
+  position: absolute;
+  top: -15%;
+  left: 0;
+  width: 38%;
+  height: 130%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+  animation: shineSweep 2.4s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-spin-slow,
   .animate-float-card,
-  .playing-card-hint {
+  .playing-card-hint,
+  .play-btn-glow,
+  .play-btn-glow::after {
     animation: none !important;
   }
   .animate-card-deal,

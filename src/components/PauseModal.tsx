@@ -1,18 +1,41 @@
 import React from 'react';
-import { Play, RotateCcw, Home, Volume2, VolumeX, Music, X, Palette, Check } from 'lucide-react';
-import { CardBackStyle, DrawMode } from '../game/types';
+import {
+  Play,
+  RotateCcw,
+  Home,
+  Volume2,
+  VolumeX,
+  Music,
+  X,
+  Palette,
+  Check,
+  Calendar,
+  Image,
+} from 'lucide-react';
+import { BackgroundTheme, CardBackStyle, DrawMode } from '../game/types';
 import { CARD_BACK_OPTIONS, CardBackGraphic } from './CardArt';
-import { PWAInstallButton } from './PWAInstallButton';
+
+const BACKGROUND_OPTIONS: { id: BackgroundTheme; label: string; previewClass: string }[] = [
+  { id: 'cyan', label: 'Pop Cyan', previewClass: 'bg-theme-cyan' },
+  { id: 'mint', label: 'Arcade Mint', previewClass: 'bg-theme-mint' },
+  { id: 'lavender', label: 'Comic Violet', previewClass: 'bg-theme-lavender' },
+  { id: 'peach', label: 'Sunset Peach', previewClass: 'bg-theme-peach' },
+];
 
 interface PauseModalProps {
   drawMode: DrawMode;
+  isDailyChallenge: boolean;
+  dailyDateLabel: string;
   cardBackStyle: CardBackStyle;
+  backgroundTheme: BackgroundTheme;
   sfxEnabled: boolean;
   musicEnabled: boolean;
   onResume: () => void;
   onNewDeal: () => void;
+  onStartDailyChallenge: () => void;
   onToggleDrawMode: () => void;
   onSelectCardBack: (style: CardBackStyle) => void;
+  onSelectBackgroundTheme: (theme: BackgroundTheme) => void;
   onToggleSfx: () => void;
   onToggleMusic: () => void;
   onReturnToTitle: () => void;
@@ -20,13 +43,18 @@ interface PauseModalProps {
 
 export const PauseModal: React.FC<PauseModalProps> = ({
   drawMode,
+  isDailyChallenge,
+  dailyDateLabel,
   cardBackStyle,
+  backgroundTheme,
   sfxEnabled,
   musicEnabled,
   onResume,
   onNewDeal,
+  onStartDailyChallenge,
   onToggleDrawMode,
   onSelectCardBack,
+  onSelectBackgroundTheme,
   onToggleSfx,
   onToggleMusic,
   onReturnToTitle,
@@ -53,7 +81,9 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           GAME PAUSED
         </h2>
         <p className="text-xs font-bold text-[#0D0D0D]/70 mb-4">
-          Timer paused · Customize your deck or jump back in
+          {isDailyChallenge
+            ? `Daily Challenge (${dailyDateLabel}) · Same seeded deal for everyone today`
+            : 'Timer paused · Customize your table or jump back in'}
         </p>
 
         {/* Primary Actions */}
@@ -71,27 +101,49 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             <button
               type="button"
               onClick={onNewDeal}
-              className="pop-btn bg-[#FF1E42] text-white font-bangers text-xl py-2 rounded-xl tracking-wide flex items-center justify-center gap-1.5"
+              className="pop-btn bg-[#FF1E42] text-white font-bangers text-xl py-2 rounded-xl tracking-wide flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
-              <RotateCcw className="w-4 h-4" strokeWidth={2.8} />
-              <span>New Deal</span>
+              <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={2.8} />
+              <span>{isDailyChallenge ? 'Restart Daily' : 'New Deal'}</span>
             </button>
+
+            {isDailyChallenge ? (
+              <button
+                type="button"
+                onClick={onToggleDrawMode}
+                className="pop-btn bg-[#FFE600] text-[#0D0D0D] font-bangers text-xl py-2 rounded-xl tracking-wide whitespace-nowrap"
+              >
+                Switch Classic
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onStartDailyChallenge}
+                className="pop-btn bg-[#FF0099] text-white font-bangers text-xl py-2 rounded-xl tracking-wide flex items-center justify-center gap-1.5 whitespace-nowrap"
+              >
+                <Calendar className="w-4 h-4 shrink-0" strokeWidth={2.8} />
+                <span>Daily · {dailyDateLabel}</span>
+              </button>
+            )}
+          </div>
+
+          {!isDailyChallenge && (
             <button
               type="button"
               onClick={onToggleDrawMode}
-              className="pop-btn bg-[#FFE600] text-[#0D0D0D] font-bangers text-xl py-2 rounded-xl tracking-wide"
+              className="pop-btn w-full bg-[#FFE600] text-[#0D0D0D] font-bangers text-lg py-1.5 rounded-xl tracking-wide"
             >
-              Mode: Draw {drawMode}
+              Classic Mode: Draw {drawMode} (Tap to Switch)
             </button>
-          </div>
+          )}
         </div>
 
-        {/* Customization Section: Pop Art Card Back Patterns */}
-        <div className="bg-[#00D2FF]/15 border-[2.5px] border-[#0D0D0D] rounded-xl p-3 mb-4">
+        {/* Customization Section 1: Card Back */}
+        <div className="bg-[#00D2FF]/15 border-[2.5px] border-[#0D0D0D] rounded-xl p-3 mb-3.5">
           <div className="flex items-center gap-1.5 mb-2.5">
             <Palette className="w-4 h-4 text-[#FF0099]" strokeWidth={2.8} />
             <h3 className="font-bangers text-xl tracking-wide text-[#0D0D0D] leading-none">
-              Customization · Card Back
+              Customization - Card Back
             </h3>
           </div>
 
@@ -127,39 +179,49 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           </div>
         </div>
 
-        {/* Audio Toggles */}
-        <div className="grid grid-cols-2 gap-2.5 mb-4">
-          <button
-            type="button"
-            onClick={onToggleMusic}
-            className={`pop-btn py-2 px-3 rounded-xl font-bangers text-lg tracking-wide flex items-center justify-center gap-1.5 ${
-              musicEnabled ? 'bg-[#00D2FF] text-[#0D0D0D]' : 'bg-slate-200 text-[#0D0D0D]/60'
-            }`}
-          >
-            <Music className="w-4 h-4" strokeWidth={2.8} />
-            <span>{musicEnabled ? 'Music: On' : 'Music: Off'}</span>
-          </button>
+        {/* Customization Section 2: Background (4 Pop Art Soft Halftone Table Themes) */}
+        <div className="bg-[#FFE600]/20 border-[2.5px] border-[#0D0D0D] rounded-xl p-3 mb-5">
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <Image className="w-4 h-4 text-[#1D4ED8]" strokeWidth={2.8} />
+            <h3 className="font-bangers text-xl tracking-wide text-[#0D0D0D] leading-none">
+              Customization - Background
+            </h3>
+          </div>
 
-          <button
-            type="button"
-            onClick={onToggleSfx}
-            className={`pop-btn py-2 px-3 rounded-xl font-bangers text-lg tracking-wide flex items-center justify-center gap-1.5 ${
-              sfxEnabled ? 'bg-[#00D2FF] text-[#0D0D0D]' : 'bg-slate-200 text-[#0D0D0D]/60'
-            }`}
-          >
-            {sfxEnabled ? <Volume2 className="w-4 h-4" strokeWidth={2.8} /> : <VolumeX className="w-4 h-4" strokeWidth={2.8} />}
-            <span>{sfxEnabled ? 'SFX: On' : 'SFX: Off'}</span>
-          </button>
+          <div className="grid grid-cols-4 gap-2">
+            {BACKGROUND_OPTIONS.map((bg) => {
+              const isSelected = backgroundTheme === bg.id;
+              return (
+                <button
+                  key={bg.id}
+                  type="button"
+                  onClick={() => onSelectBackgroundTheme(bg.id)}
+                  aria-pressed={isSelected}
+                  className={`flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#FFE600] border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] -translate-y-0.5'
+                      : 'bg-[#FFFDF7] border-[#0D0D0D]/30 hover:border-[#0D0D0D]'
+                  }`}
+                >
+                  <div
+                    className={`relative w-full h-11 sm:h-12 rounded-lg border-2 border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] overflow-hidden ${bg.previewClass}`}
+                  >
+                    {isSelected && (
+                      <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#00E676] border border-[#0D0D0D] flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-[#0D0D0D]" strokeWidth={3.5} />
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-bangers text-xs tracking-wide text-[#0D0D0D] leading-none text-center whitespace-nowrap">
+                    {bg.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Classic Rules Summary */}
-        <div className="bg-[#FFE600]/30 border-2 border-[#0D0D0D] rounded-xl p-3 mb-4 text-xs font-semibold text-[#0D0D0D] space-y-1">
-          <div className="font-bangers text-base tracking-wide text-[#FF1E42]">How to Play Classic Klondike</div>
-          <p>· Build the 4 Foundations up from Ace to King by matching suit.</p>
-          <p>· Stack Tableau columns down in alternating colors (Red / Black).</p>
-          <p>· Only Kings can fill an empty Tableau column. Tap or drag any card!</p>
-        </div>
-
+        {/* Footer Row: Title Screen on Left + Icon-Only Music & SFX Buttons on Right */}
         <div className="flex items-center justify-between gap-2.5">
           <button
             type="button"
@@ -170,7 +232,38 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             <span>Title Screen</span>
           </button>
 
-          <PWAInstallButton compact />
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={onToggleMusic}
+              aria-label={musicEnabled ? 'Mute Music' : 'Enable Music'}
+              title={musicEnabled ? 'Mute Music' : 'Enable Music'}
+              className={`pop-btn w-11 h-11 rounded-xl flex items-center justify-center relative ${
+                musicEnabled ? 'bg-[#FFE600] text-[#0D0D0D]' : 'bg-slate-200 text-[#0D0D0D]/45'
+              }`}
+            >
+              <Music className="w-5 h-5" strokeWidth={2.8} />
+              {!musicEnabled && (
+                <span className="absolute w-7 h-[2.5px] bg-[#FF1E42] rotate-45 rounded-full" aria-hidden="true" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={onToggleSfx}
+              aria-label={sfxEnabled ? 'Mute Sound Effects' : 'Enable Sound Effects'}
+              title={sfxEnabled ? 'Mute Sound Effects' : 'Enable Sound Effects'}
+              className={`pop-btn w-11 h-11 rounded-xl flex items-center justify-center ${
+                sfxEnabled ? 'bg-[#00D2FF] text-[#0D0D0D]' : 'bg-slate-200 text-[#0D0D0D]/45'
+              }`}
+            >
+              {sfxEnabled ? (
+                <Volume2 className="w-5 h-5" strokeWidth={2.8} />
+              ) : (
+                <VolumeX className="w-5 h-5 text-[#FF1E42]" strokeWidth={2.8} />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -405,6 +405,17 @@ class SoundEngine {
     this.playSfxTone(520, 'triangle', 0.05, 0.09, 700);
   }
 
+  public playSplashIntro(): void {
+    if (!this.sfxEnabled) return;
+    // Crisp Pop Art intro swoop + punchy comic chord hit
+    this.playNoiseBurst(0.11, 2400, 'bandpass', 0.14);
+    this.playSfxTone(261.63, 'triangle', 0.14, 0.14, 523.25, 0.02);
+    this.playSfxTone(392.0, 'triangle', 0.18, 0.13, 659.25, 0.12);
+    this.playSfxTone(523.25, 'triangle', 0.28, 0.16, null, 0.24);
+    this.playSfxTone(659.25, 'sine', 0.28, 0.12, null, 0.24);
+    this.playSfxTone(783.99, 'triangle', 0.34, 0.14, null, 0.32);
+  }
+
   public playWin(): void {
     if (!this.sfxEnabled) return;
     const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];
