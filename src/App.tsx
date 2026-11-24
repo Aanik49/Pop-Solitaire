@@ -10,12 +10,12 @@ import {
   Calendar,
 } from 'lucide-react';
 import {
-  BackgroundTheme,
   CalloutBurst,
   CardBackStyle,
   CardSource,
   DailyChallengeRecord,
   DrawMode,
+  GameplayTheme,
   GameState,
   MoveHint,
   MoveTarget,
@@ -34,6 +34,7 @@ import {
   formatDailyDateLabel,
   getNextAutoCompleteMove,
   getTodayDateKey,
+  hasAnyProductiveMove,
   isDailyCompleted,
   isGameWon,
   loadDailyRecord,
@@ -45,10 +46,32 @@ import { soundEngine } from './audio/soundEngine';
 import { IntroSplash } from './components/IntroSplash';
 import { SplashScreen } from './components/SplashScreen';
 import { GameBoard } from './components/GameBoard';
+import { GameplayBackdrop } from './components/GameplayBackdrop';
 import { ComicCalloutLayer } from './components/ComicCalloutLayer';
 import { PauseModal } from './components/PauseModal';
 import { VictoryOverlay } from './components/VictoryCascade';
+import { FailedModal } from './components/FailedModal';
+import { QuitConfirmModal } from './components/QuitConfirmModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+
+interface CapacitorWindow extends Window {
+  Capacitor?: {
+    Plugins?: {
+      App?: {
+        exitApp?: () => Promise<void> | void;
+        addListener?: (
+          eventName: string,
+          listenerFunc: () => void
+        ) => Promise<{ remove: () => Promise<void> }> | { remove: () => void };
+      };
+      StatusBar?: {
+        hide?: () => Promise<void>;
+        setBackgroundColor?: (options: { color: string }) => Promise<void>;
+        setOverlaysWebView?: (options: { overlay: boolean }) => Promise<void>;
+      };
+    };
+  };
+}
 
 function formatTime(secs: number): string {
   const m = Math.floor(secs / 60)
@@ -58,38 +81,50 @@ function formatTime(secs: number): string {
   return `${m}:${s}`;
 }
 
-const CARD_BACK_STORAGE_KEY = 'pop_solitaire_card_back_v1';
-const BG_THEME_STORAGE_KEY = 'pop_solitaire_bg_theme_v1';
+const CARD_BACK_STORAGE_KEY = 'pop_solitaire_card_back_v2';
+const GAMEPLAY_THEME_STORAGE_KEY = 'pop_solitaire_gameplay_theme_v1';
 
 function loadSavedCardBack(): CardBackStyle {
   try {
     const raw = localStorage.getItem(CARD_BACK_STORAGE_KEY);
-    if (raw === 'dots' || raw === 'stripes' || raw === 'geometric' || raw === 'checker') {
+    if (
+      raw === 'theme' ||
+      raw === 'dots' ||
+      raw === 'stripes' ||
+      raw === 'geometric' ||
+      raw === 'checker'
+    ) {
       return raw;
     }
   } catch {
     // ignore storage restrictions
   }
-  return 'dots';
+  return 'theme';
 }
 
-function loadSavedBackgroundTheme(): BackgroundTheme {
+function loadSavedGameplayTheme(): GameplayTheme {
   try {
-    const raw = localStorage.getItem(BG_THEME_STORAGE_KEY);
-    if (raw === 'cyan' || raw === 'mint' || raw === 'lavender' || raw === 'peach') {
+    const raw = localStorage.getItem(GAMEPLAY_THEME_STORAGE_KEY);
+    if (
+      raw === 'comic' ||
+      raw === 'warhol' ||
+      raw === 'memphis' ||
+      raw === 'street' ||
+      raw === 'manga'
+    ) {
       return raw;
     }
   } catch {
     // ignore storage restrictions
   }
-  return 'cyan';
+  return 'comic';
 }
 
 export default function App() {
   const [screen, setScreen] = useState<ScreenState>('INTRO');
   const [drawMode, setDrawMode] = useState<DrawMode>(1);
   const [cardBackStyle, setCardBackStyle] = useState<CardBackStyle>(() => loadSavedCardBack());
-  const [backgroundTheme, setBackgroundTheme] = useState<BackgroundTheme>(() => loadSavedBackgroundTheme());
+  const [gameplayTheme, setGameplayTheme] = useState<GameplayTheme>(() => loadSavedGameplayTheme());
   const [gameState, setGameState] = useState<GameState>(() => dealNewGame(1));
   const [undoStack, setUndoStack] = useState<GameState[]>([]);
   const [seconds, setSeconds] = useState<number>(0);
@@ -112,9 +147,39 @@ export default function App() {
   const [isNewDealAnim, setIsNewDealAnim] = useState<boolean>(false);
   const [isAutoCompleting, setIsAutoCompleting] = useState<boolean>(false);
 
+  // Back-button Quit System states
+  const [showQuitConfirm, setShowQuitConfirm] = useState<boolean>(false);
+  const [quitToastVisible, setQuitToastVisible] = useState<boolean>(false);
+
   const calloutCounterRef = useRef(1);
   const autoCompleteTimerRef = useRef<number | null>(null);
   const dealAnimTimerRef = useRef<number | null>(null);
+  const deadlockTimerRef = useRef<number | null>(null);
+  const quitToastTimerRef = useRef<number | null>(null);
+  const lastBackPressTimeRef = useRef<number>(0);
+  const exitingAppRef = useRef<boolean>(false);
+
+  const screenRef = useRef<ScreenState>(screen);
+  const showQuitConfirmRef = useRef<boolean>(showQuitConfirm);
+
+  useEffect(() => {
+    screenRef.current = screen;
+  }, [screen]);
+
+  useEffect(() => {
+    showQuitConfirmRef.current = showQuitConfirm;
+  }, [showQuitConfirm]);
+
+  // Automatically hide device top status bar and fill area with Pop Yellow (#FFE600) on launch
+  useEffect(() => {
+    const capWindow = window as CapacitorWindow;
+    const statusBar = capWindow.Capacitor?.Plugins?.StatusBar;
+    if (statusBar) {
+      statusBar.setOverlaysWebView?.({ overlay: true }).catch(() => {});
+      statusBar.setBackgroundColor?.({ color: '#FFE600' }).catch(() => {});
+      statusBar.hide?.().catch(() => {});
+    }
+  }, []);
 
   const spawnCallout = useCallback((text: string, x: number, y: number, bgColor: string) => {
     const safeX = Math.max(82, Math.min(window.innerWidth - 82, x));
@@ -132,25 +197,163 @@ export default function App() {
     setShakingCardId(null);
   }, []);
 
-  // Game Clock: ticks only when actively playing after first move
+  const cancelDeadlockTimer = useCallback(() => {
+    if (deadlockTimerRef.current !== null) {
+      window.clearTimeout(deadlockTimerRef.current);
+      deadlockTimerRef.current = null;
+    }
+  }, []);
+
+  const triggerFailedPanel = useCallback(() => {
+    cancelDeadlockTimer();
+    setIsAutoCompleting(false);
+    setTimerActive(false);
+    setHint(null);
+    soundEngine.playSadFail();
+    setScreen('FAILED');
+  }, [cancelDeadlockTimer]);
+
+  const scheduleDeadlockCheck = useCallback(
+    (nextState: GameState) => {
+      cancelDeadlockTimer();
+      if (isGameWon(nextState) || canAutoComplete(nextState)) return;
+      if (!hasAnyProductiveMove(nextState)) {
+        deadlockTimerRef.current = window.setTimeout(() => {
+          if (screenRef.current === 'PLAYING') {
+            triggerFailedPanel();
+          }
+        }, 420);
+      }
+    },
+    [cancelDeadlockTimer, triggerFailedPanel]
+  );
+
+  // Unified Device Back Button / Back Gesture Handler (Android Capacitor + Mobile/Web Browser)
+  const handleDeviceBack = useCallback(() => {
+    // 1. If quit confirmation is already visible, Back dismisses it and continues playing
+    if (showQuitConfirmRef.current) {
+      soundEngine.playButton();
+      setShowQuitConfirm(false);
+      return;
+    }
+
+    const currentScreen = screenRef.current;
+
+    // 2. From Gameplay or Pause: show Game Quit Confirmation Panel
+    if (currentScreen === 'PLAYING' || currentScreen === 'PAUSED') {
+      soundEngine.playButton();
+      setShowQuitConfirm(true);
+      return;
+    }
+
+    // 3. From Victory or Failed overlay: return to Lobby
+    if (currentScreen === 'VICTORY' || currentScreen === 'FAILED') {
+      soundEngine.playButton();
+      setScreen('SPLASH');
+      return;
+    }
+
+    // 4. From Lobby (SPLASH): press Back two times in a row to quit game
+    if (currentScreen === 'SPLASH') {
+      const now = Date.now();
+      if (now - lastBackPressTimeRef.current < 2200) {
+        if (quitToastTimerRef.current !== null) {
+          window.clearTimeout(quitToastTimerRef.current);
+          quitToastTimerRef.current = null;
+        }
+        setQuitToastVisible(false);
+        const capWindow = window as CapacitorWindow;
+        if (capWindow.Capacitor?.Plugins?.App?.exitApp) {
+          capWindow.Capacitor.Plugins.App.exitApp();
+        } else {
+          exitingAppRef.current = true;
+          window.close();
+          window.history.back();
+        }
+      } else {
+        lastBackPressTimeRef.current = now;
+        soundEngine.playButton();
+        setQuitToastVisible(true);
+        if (quitToastTimerRef.current !== null) {
+          window.clearTimeout(quitToastTimerRef.current);
+        }
+        quitToastTimerRef.current = window.setTimeout(() => {
+          setQuitToastVisible(false);
+          quitToastTimerRef.current = null;
+        }, 2200);
+      }
+    }
+  }, []);
+
   useEffect(() => {
-    if (screen !== 'PLAYING' || !timerActive) return;
+    // Push history sentinel so mobile browser back gestures trigger popstate cleanly
+    try {
+      window.history.pushState({ popSolitaireGuard: true }, '', window.location.href);
+    } catch {
+      // ignore sandboxed history restrictions
+    }
+
+    const onPopState = () => {
+      if (exitingAppRef.current) return;
+      handleDeviceBack();
+      if (!exitingAppRef.current) {
+        try {
+          window.history.pushState({ popSolitaireGuard: true }, '', window.location.href);
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    window.addEventListener('popstate', onPopState);
+
+    // Capacitor Android native hardware/gesture back listener
+    let removeCapListener: (() => void) | null = null;
+    const capWindow = window as CapacitorWindow;
+    const capApp = capWindow.Capacitor?.Plugins?.App;
+    if (capApp?.addListener) {
+      const handlePromise = capApp.addListener('backButton', () => {
+        handleDeviceBack();
+      });
+      Promise.resolve(handlePromise)
+        .then((handle) => {
+          if (handle && typeof handle.remove === 'function') {
+            removeCapListener = () => {
+              handle.remove();
+            };
+          }
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      if (removeCapListener) removeCapListener();
+    };
+  }, [handleDeviceBack]);
+
+  // Game Clock: ticks only when actively playing after first move and not paused/confirming quit
+  useEffect(() => {
+    if (screen !== 'PLAYING' || !timerActive || showQuitConfirm) return;
     const id = window.setInterval(() => {
       setSeconds((s) => s + 1);
     }, 1000);
     return () => window.clearInterval(id);
-  }, [screen, timerActive]);
+  }, [screen, timerActive, showQuitConfirm]);
 
-  // Cleanup auto-complete timer on unmount
+  // Cleanup all timers on unmount
   useEffect(() => {
     return () => {
       if (autoCompleteTimerRef.current !== null) window.clearTimeout(autoCompleteTimerRef.current);
       if (dealAnimTimerRef.current !== null) window.clearTimeout(dealAnimTimerRef.current);
+      if (deadlockTimerRef.current !== null) window.clearTimeout(deadlockTimerRef.current);
+      if (quitToastTimerRef.current !== null) window.clearTimeout(quitToastTimerRef.current);
     };
   }, []);
 
   const startFreshDeal = useCallback(
     (mode: DrawMode, showCallout = true) => {
+      cancelDeadlockTimer();
       if (autoCompleteTimerRef.current !== null) {
         window.clearTimeout(autoCompleteTimerRef.current);
         autoCompleteTimerRef.current = null;
@@ -159,13 +362,15 @@ export default function App() {
         window.clearTimeout(dealAnimTimerRef.current);
       }
 
+      setShowQuitConfirm(false);
       setIsAutoCompleting(false);
       setHint(null);
       clearTransientAnimFlags();
       setUndoStack([]);
       setSeconds(0);
       setTimerActive(false);
-      setGameState(dealNewGame(mode));
+      const freshState = dealNewGame(mode);
+      setGameState(freshState);
       setScreen('PLAYING');
       setIsNewDealAnim(true);
 
@@ -180,10 +385,11 @@ export default function App() {
         spawnCallout('DEAL!', window.innerWidth / 2, window.innerHeight * 0.36, '#FFE600');
       }
     },
-    [clearTransientAnimFlags, spawnCallout]
+    [cancelDeadlockTimer, clearTransientAnimFlags, spawnCallout]
   );
 
   const startDailyChallenge = useCallback(() => {
+    cancelDeadlockTimer();
     if (autoCompleteTimerRef.current !== null) {
       window.clearTimeout(autoCompleteTimerRef.current);
       autoCompleteTimerRef.current = null;
@@ -193,6 +399,7 @@ export default function App() {
     }
 
     const dateKey = getTodayDateKey();
+    setShowQuitConfirm(false);
     setIsAutoCompleting(false);
     setHint(null);
     clearTransientAnimFlags();
@@ -211,7 +418,7 @@ export default function App() {
     }, 650);
 
     spawnCallout('DAILY!', window.innerWidth / 2, window.innerHeight * 0.36, '#FF0099');
-  }, [clearTransientAnimFlags, spawnCallout]);
+  }, [cancelDeadlockTimer, clearTransientAnimFlags, spawnCallout]);
 
   const handleDealOrRestart = useCallback(() => {
     if (gameState.isDailyChallenge) {
@@ -260,11 +467,11 @@ export default function App() {
     }
   }, []);
 
-  const handleSelectBackgroundTheme = useCallback((theme: BackgroundTheme) => {
-    setBackgroundTheme(theme);
+  const handleSelectGameplayTheme = useCallback((theme: GameplayTheme) => {
+    setGameplayTheme(theme);
     soundEngine.playButton();
     try {
-      localStorage.setItem(BG_THEME_STORAGE_KEY, theme);
+      localStorage.setItem(GAMEPLAY_THEME_STORAGE_KEY, theme);
     } catch {
       // ignore storage errors
     }
@@ -288,11 +495,14 @@ export default function App() {
     if (result.recycled) {
       spawnCallout('RELOAD!', window.innerWidth * 0.16, window.innerHeight * 0.24, '#00D2FF');
     }
-  }, [gameState, isAutoCompleting, screen, spawnCallout]);
+
+    scheduleDeadlockCheck(result.nextState);
+  }, [gameState, isAutoCompleting, scheduleDeadlockCheck, screen, spawnCallout]);
 
   const commitWinIfNeeded = useCallback(
-    (nextState: GameState) => {
-      if (!isGameWon(nextState)) return;
+    (nextState: GameState): boolean => {
+      if (!isGameWon(nextState)) return false;
+      cancelDeadlockTimer();
       setIsAutoCompleting(false);
       setTimerActive(false);
       soundEngine.playWin();
@@ -306,8 +516,9 @@ export default function App() {
       window.setTimeout(() => {
         setScreen('VICTORY');
       }, 520);
+      return true;
     },
-    [seconds, spawnCallout]
+    [cancelDeadlockTimer, seconds, spawnCallout]
   );
 
   const handleExecuteMove = useCallback(
@@ -343,10 +554,13 @@ export default function App() {
         }
       }
 
-      commitWinIfNeeded(result.nextState);
+      const won = commitWinIfNeeded(result.nextState);
+      if (!won) {
+        scheduleDeadlockCheck(result.nextState);
+      }
       return true;
     },
-    [commitWinIfNeeded, gameState, screen, spawnCallout]
+    [commitWinIfNeeded, gameState, scheduleDeadlockCheck, screen, spawnCallout]
   );
 
   const handleSmartTap = useCallback(
@@ -354,7 +568,6 @@ export default function App() {
       if (screen !== 'PLAYING' || isAutoCompleting) return false;
       const bestTarget = findSmartMove(gameState, source);
       if (!bestTarget) {
-        // Trigger visual shake on the tapped card so user gets immediate tactile feedback
         let cardId: string | null = null;
         if (source.type === 'waste' && gameState.waste.length > 0) {
           cardId = gameState.waste[gameState.waste.length - 1].id;
@@ -376,29 +589,43 @@ export default function App() {
   );
 
   const handleUndo = useCallback(() => {
-    if (screen !== 'PLAYING' || undoStack.length === 0 || isAutoCompleting) return;
+    if ((screen !== 'PLAYING' && screen !== 'FAILED') || undoStack.length === 0 || isAutoCompleting) {
+      return;
+    }
+    cancelDeadlockTimer();
     const previous = undoStack[undoStack.length - 1];
     setUndoStack((prev) => prev.slice(0, -1));
     setGameState({ ...previous, moves: gameState.moves + 1 });
     setHint(null);
     clearTransientAnimFlags();
+    if (screen === 'FAILED') {
+      setScreen('PLAYING');
+      setTimerActive(true);
+    }
     soundEngine.playUndo();
-  }, [clearTransientAnimFlags, gameState.moves, isAutoCompleting, screen, undoStack]);
+  }, [cancelDeadlockTimer, clearTransientAnimFlags, gameState.moves, isAutoCompleting, screen, undoStack]);
 
   const handleHint = useCallback(() => {
     if (screen !== 'PLAYING' || isAutoCompleting) return;
-    const best = findBestHint(gameState);
-    setHint(best);
-    if (best.kind === 'stuck') {
-      soundEngine.playError();
-      spawnCallout('STUCK!', window.innerWidth / 2, window.innerHeight / 2, '#FF1E42');
-    } else {
-      soundEngine.playHint();
-      if (best.kind === 'draw') {
-        spawnCallout('DRAW!', window.innerWidth * 0.14, window.innerHeight * 0.25, '#00D2FF');
-      }
+
+    // If no positive/winning move exists anywhere (including full deck cycle), show Failed Panel!
+    if (!hasAnyProductiveMove(gameState)) {
+      triggerFailedPanel();
+      return;
     }
-  }, [gameState, isAutoCompleting, screen, spawnCallout]);
+
+    const best = findBestHint(gameState);
+    if (best.kind === 'stuck') {
+      triggerFailedPanel();
+      return;
+    }
+
+    setHint(best);
+    soundEngine.playHint();
+    if (best.kind === 'draw') {
+      spawnCallout('DRAW!', window.innerWidth * 0.14, window.innerHeight * 0.25, '#00D2FF');
+    }
+  }, [gameState, isAutoCompleting, screen, spawnCallout, triggerFailedPanel]);
 
   // Smooth step-by-step Auto-Complete cascade when Stock & Waste are empty and all Tableau cards are face-up
   const autoCompleteAvailable = !isAutoCompleting && canAutoComplete(gameState);
@@ -452,11 +679,15 @@ export default function App() {
       if (e.key === 'Escape') {
         e.preventDefault();
         soundEngine.playButton();
-        setScreen((prev) => (prev === 'PLAYING' ? 'PAUSED' : 'PLAYING'));
+        if (showQuitConfirm) {
+          setShowQuitConfirm(false);
+        } else {
+          setScreen((prev) => (prev === 'PLAYING' ? 'PAUSED' : 'PLAYING'));
+        }
         return;
       }
 
-      if (screen !== 'PLAYING') return;
+      if (screen !== 'PLAYING' || showQuitConfirm) return;
 
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
@@ -472,26 +703,37 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleHint, handleToggleMusic, handleUndo, screen]);
+  }, [handleHint, handleToggleMusic, handleUndo, screen, showQuitConfirm]);
 
   const timeFormatted = formatTime(seconds);
+  const isGameplayScreen = screen !== 'INTRO' && screen !== 'SPLASH';
 
   return (
-    <div className={`w-full h-full flex flex-col bg-theme-${backgroundTheme} overflow-hidden relative`}>
-      {screen === 'INTRO' ? (
-        <IntroSplash
-          backgroundTheme={backgroundTheme}
-          onComplete={() => setScreen('SPLASH')}
+    <div
+      className={`w-full h-full flex flex-col overflow-hidden relative ${
+        isGameplayScreen ? `gameplay-theme-${gameplayTheme}` : 'pop-halftone-bg'
+      }`}
+    >
+      {/* Top Safe-Area Yellow Bar Fill for Intro & Lobby (zero element shift on devices without cutout/status inset) */}
+      {!isGameplayScreen && (
+        <div
+          className="w-full bg-[#FFE600] shrink-0"
+          style={{ height: 'env(safe-area-inset-top, 0px)' }}
+          aria-hidden="true"
         />
+      )}
+
+      {screen === 'INTRO' ? (
+        <IntroSplash onComplete={() => setScreen('SPLASH')} />
       ) : screen === 'SPLASH' ? (
         <SplashScreen
-          backgroundTheme={backgroundTheme}
           drawMode={drawMode}
           sfxEnabled={sfxEnabled}
           musicEnabled={musicEnabled}
           dailyDateLabel={todayDateLabel}
           isDailyWinner={isDailyWinnerToday}
           dailyStreak={dailyRecord.streak}
+          quitToastVisible={quitToastVisible}
           onSelectDrawMode={handleSelectDrawModeOnSplash}
           onToggleSfx={handleToggleSfx}
           onToggleMusic={handleToggleMusic}
@@ -500,8 +742,11 @@ export default function App() {
         />
       ) : (
         <>
-          {/* Responsive Pop Art Comic Game HUD: zero clipping from 320px mobile to 1440px+ desktop */}
-          <header className="w-full bg-[#FFE600] border-b-[3.5px] border-[#0D0D0D] px-2 sm:px-4 py-1.5 sm:py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2 z-50 shadow-[0_4px_0_#0D0D0D] shrink-0">
+          {/* Multi-Layered Theme-Specific Pop Art Gameplay Tabletop Backdrop */}
+          <GameplayBackdrop theme={gameplayTheme} />
+
+          {/* Responsive Pop Art Comic Game HUD with Yellow Safe-Top Fill */}
+          <header className="safe-top-yellow w-full border-b-[3.5px] border-[#0D0D0D] px-2 sm:px-4 pb-1.5 sm:pb-2 pt-1.5 sm:pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2 z-50 shadow-[0_4px_0_#0D0D0D] shrink-0 relative">
             {/* Row 1 (mobile) / Left+Center (desktop): Brand, Draw Mode / Daily Tag, and Scoreboard */}
             <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto min-w-0">
               <div className="flex items-center gap-1.5 shrink-0">
@@ -511,8 +756,12 @@ export default function App() {
                     soundEngine.playButton();
                     setScreen('PAUSED');
                   }}
-                  className="bg-[#FF1E42] text-white font-bangers text-base sm:text-xl md:text-2xl px-2 sm:px-2.5 py-0.5 rounded-lg border-[2.5px] border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] -rotate-1 tracking-wider whitespace-nowrap cursor-pointer hover:brightness-105"
-                  title="Open Menu & Customization"
+                  style={{
+                    backgroundColor: 'var(--hud-accent)',
+                    color: 'var(--hud-accent-text)',
+                  }}
+                  className="font-bangers text-base sm:text-xl md:text-2xl px-2 sm:px-2.5 py-0.5 rounded-lg border-[2.5px] border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] -rotate-1 tracking-wider whitespace-nowrap cursor-pointer hover:brightness-105 transition-colors"
+                  title="Open Menu & Theme Customization"
                 >
                   POP! SOLITAIRE
                 </button>
@@ -542,7 +791,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Clean Unboxed Tabular Scoreboard Strip (visible on all screen widths) */}
+              {/* Clean Tabular Scoreboard Strip */}
               <div className="bg-[#FFFDF7] border-[2.5px] border-[#0D0D0D] rounded-lg px-2 sm:px-3.5 py-0.5 sm:py-1 shadow-[2px_2px_0_#0D0D0D] flex items-center gap-2 sm:gap-3.5 tabular-nums shrink-0">
                 <div className="flex items-baseline gap-1">
                   <span className="font-bangers text-[11px] sm:text-sm text-[#FF1E42] tracking-wide">SCORE</span>
@@ -567,7 +816,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Row 2 (mobile) / Right Zone (desktop): Full Action Toolbar — never clipped! */}
+            {/* Row 2 (mobile) / Right Zone (desktop): Full Action Toolbar */}
             <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto shrink-0">
               {gameState.isDailyChallenge ? (
                 <button
@@ -659,7 +908,7 @@ export default function App() {
                     setScreen('PAUSED');
                   }}
                   className="pop-btn bg-[#FFFDF7] text-[#0D0D0D] px-2 py-1 sm:py-1.5 rounded-lg flex items-center justify-center"
-                  title="Pause, Settings & Customization (Esc)"
+                  title="Pause, Settings & Theme Customization (Esc)"
                   aria-label="Pause Menu"
                 >
                   <Pause className="w-4 h-4" strokeWidth={2.8} />
@@ -672,6 +921,7 @@ export default function App() {
           <GameBoard
             gameState={gameState}
             cardBackStyle={cardBackStyle}
+            gameplayTheme={gameplayTheme}
             hint={hint}
             lastFlippedCardId={lastFlippedCardId}
             lastLandedCardIds={lastLandedCardIds}
@@ -689,14 +939,14 @@ export default function App() {
             onInvalidMoveSfx={() => soundEngine.playError()}
           />
 
-          {/* Pause & Customization Modal */}
+          {/* Pause & Theme/Card Customization Modal */}
           {screen === 'PAUSED' && (
             <PauseModal
               drawMode={drawMode}
               isDailyChallenge={gameState.isDailyChallenge}
               dailyDateLabel={todayDateLabel}
               cardBackStyle={cardBackStyle}
-              backgroundTheme={backgroundTheme}
+              gameplayTheme={gameplayTheme}
               sfxEnabled={sfxEnabled}
               musicEnabled={musicEnabled}
               onResume={() => {
@@ -707,7 +957,7 @@ export default function App() {
               onStartDailyChallenge={startDailyChallenge}
               onToggleDrawMode={handleToggleDrawModeInGame}
               onSelectCardBack={handleSelectCardBack}
-              onSelectBackgroundTheme={handleSelectBackgroundTheme}
+              onSelectGameplayTheme={handleSelectGameplayTheme}
               onToggleSfx={handleToggleSfx}
               onToggleMusic={handleToggleMusic}
               onReturnToTitle={() => {
@@ -733,11 +983,44 @@ export default function App() {
               }}
             />
           )}
+
+          {/* Failed / Deadlock Modal (Sad Emoji + Sad Sound Effect + Play Again) */}
+          {screen === 'FAILED' && (
+            <FailedModal
+              score={gameState.score}
+              moves={gameState.moves}
+              timeFormatted={timeFormatted}
+              canUndo={undoStack.length > 0}
+              isDailyChallenge={gameState.isDailyChallenge}
+              onPlayAgain={handleDealOrRestart}
+              onUndoLastMove={handleUndo}
+              onReturnToLobby={() => {
+                soundEngine.playButton();
+                setScreen('SPLASH');
+              }}
+            />
+          )}
+
+          {/* Gameplay Device-Back Quit Confirmation Modal */}
+          {showQuitConfirm && (
+            <QuitConfirmModal
+              onConfirmQuit={() => {
+                soundEngine.playButton();
+                cancelDeadlockTimer();
+                setShowQuitConfirm(false);
+                setScreen('SPLASH');
+              }}
+              onCancelQuit={() => {
+                soundEngine.playButton();
+                setShowQuitConfirm(false);
+              }}
+            />
+          )}
         </>
       )}
 
       {/* Global Comic Callout Burst Layer */}
-      <ComicCalloutLayer callouts={callouts} />
+      <ComicCalloutLayer callouts={callouts} gameplayTheme={isGameplayScreen ? gameplayTheme : 'comic'} />
 
       {/* Offline Mode Indicator */}
       <OfflineIndicator />

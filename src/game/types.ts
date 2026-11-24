@@ -1,9 +1,9 @@
 export type Suit = 'spades' | 'hearts' | 'clubs' | 'diamonds';
 export type CardColor = 'red' | 'black';
 export type DrawMode = 1 | 3;
-export type ScreenState = 'INTRO' | 'SPLASH' | 'PLAYING' | 'PAUSED' | 'VICTORY';
-export type CardBackStyle = 'dots' | 'stripes' | 'geometric' | 'checker';
-export type BackgroundTheme = 'cyan' | 'mint' | 'lavender' | 'peach';
+export type ScreenState = 'INTRO' | 'SPLASH' | 'PLAYING' | 'PAUSED' | 'VICTORY' | 'FAILED';
+export type GameplayTheme = 'comic' | 'warhol' | 'memphis' | 'street' | 'manga';
+export type CardBackStyle = 'theme' | 'dots' | 'stripes' | 'geometric' | 'checker';
 
 export interface Card {
   id: string;

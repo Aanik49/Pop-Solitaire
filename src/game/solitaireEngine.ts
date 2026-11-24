@@ -524,6 +524,143 @@ export function isGameWon(state: GameState): boolean {
   return state.foundations.reduce((sum, pile) => sum + pile.length, 0) === 52;
 }
 
+/**
+ * Checks whether ANY productive (positive) move exists anywhere in the current game state,
+ * including cycling through all reachable Stock & Waste cards under the active Draw 1 / Draw 3 rules.
+ *
+ * Returns false when the player is truly deadlocked (only futile flipping or pointless King shuffles remain).
+ */
+export function hasAnyProductiveMove(state: GameState): boolean {
+  if (isGameWon(state)) return true;
+
+  // 1. Check if any Tableau top card can move to a Foundation
+  for (let c = 0; c < 7; c++) {
+    const col = state.tableau[c];
+    if (col.length === 0) continue;
+    const top = col[col.length - 1];
+    if (findValidFoundationIndex(top, state.foundations) !== -1) {
+      return true;
+    }
+  }
+
+  // 2. Check if any Tableau face-up card/sub-stack can make a productive move to another Tableau column
+  for (let c = 0; c < 7; c++) {
+    const col = state.tableau[c];
+    if (col.length === 0) continue;
+
+    // 2a. Check the leading face-up card of the column (can uncover a face-down card or free an empty column for a King)
+    const firstUpIdx = col.findIndex((card) => card.faceUp);
+    if (firstUpIdx !== -1) {
+      const lead = col[firstUpIdx];
+      const uncoversFaceDown = firstUpIdx > 0 && !col[firstUpIdx - 1].faceUp;
+
+      for (let targetC = 0; targetC < 7; targetC++) {
+        if (c === targetC) continue;
+        if (!canMoveToTableau(lead, state.tableau[targetC])) continue;
+
+        // Moving a King from index 0 to another empty column is a pointless loop
+        if (lead.value === 13 && firstUpIdx === 0 && state.tableau[targetC].length === 0) {
+          continue;
+        }
+
+        // Uncovering a face-down card is always productive
+        if (uncoversFaceDown) {
+          return true;
+        }
+
+        // Clearing an entire column (index 0 non-King moving onto another card) is productive if a King exists that can use it
+        if (firstUpIdx === 0) {
+          const hasPlayableKing =
+            state.tableau.some((kCol, kIdx) => {
+              if (kIdx === c || kCol.length === 0) return false;
+              const kFirstUp = kCol.findIndex((card) => card.faceUp);
+              return kFirstUp > 0 && kCol[kFirstUp].value === 13;
+            }) ||
+            state.waste.some((card) => card.value === 13) ||
+            state.stock.some((card) => card.value === 13);
+
+          if (hasPlayableKing) {
+            return true;
+          }
+        }
+      }
+    }
+
+    // 2b. Check splitting a face-up stack ONLY if the newly exposed card underneath can go straight to a Foundation
+    for (let idx = Math.max(1, firstUpIdx + 1); idx < col.length; idx++) {
+      const exposedUnder = col[idx - 1];
+      if (!exposedUnder.faceUp) continue;
+      if (findValidFoundationIndex(exposedUnder, state.foundations) === -1) continue;
+
+      const subLead = col[idx];
+      for (let targetC = 0; targetC < 7; targetC++) {
+        if (c === targetC) continue;
+        if (canMoveToTableau(subLead, state.tableau[targetC])) {
+          return true;
+        }
+      }
+    }
+  }
+
+  // 3. Check ALL reachable cards from Stock & Waste by simulating a full deck cycle
+  //    (If Draw 1, every card in stock + waste is reachable; if Draw 3, simulate exact 3-card steps through current pass + recycled pass)
+  const reachableCards: Card[] = [];
+  const seenIds = new Set<string>();
+
+  const collectReachable = (card: Card | undefined) => {
+    if (card && !seenIds.has(card.id)) {
+      seenIds.add(card.id);
+      reachableCards.push(card);
+    }
+  };
+
+  // Current top of waste is immediately reachable
+  if (state.waste.length > 0) {
+    collectReachable(state.waste[state.waste.length - 1]);
+  }
+
+  if (state.drawMode === 1) {
+    for (const c of state.stock) collectReachable(c);
+    for (const c of state.waste) collectReachable(c);
+  } else {
+    // Simulate Draw 3 forward through remaining stock, then recycle and traverse one complete fresh pass
+    let simStock = [...state.stock];
+    let simWaste = [...state.waste];
+
+    const stepPass = () => {
+      while (simStock.length > 0) {
+        const count = Math.min(3, simStock.length);
+        for (let i = 0; i < count; i++) {
+          simWaste.push(simStock.pop()!);
+        }
+        collectReachable(simWaste[simWaste.length - 1]);
+      }
+    };
+
+    stepPass();
+    // Recycle once and traverse the recycled deck completely
+    if (simWaste.length > 0) {
+      while (simWaste.length > 0) {
+        simStock.push(simWaste.pop()!);
+      }
+      stepPass();
+    }
+  }
+
+  for (const card of reachableCards) {
+    if (findValidFoundationIndex(card, state.foundations) !== -1) {
+      return true;
+    }
+    for (let c = 0; c < 7; c++) {
+      if (canMoveToTableau(card, state.tableau[c])) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 const STATS_KEY = 'pop_solitaire_stats_v1';
 
 export function loadPlayerStats(): PlayerStats {

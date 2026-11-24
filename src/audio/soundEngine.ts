@@ -416,6 +416,16 @@ class SoundEngine {
     this.playSfxTone(783.99, 'triangle', 0.34, 0.14, null, 0.32);
   }
 
+  public playSadFail(): void {
+    if (!this.sfxEnabled) return;
+    // Classic descending comic "wah-wah-waaah" sad trombone glide
+    this.playSfxTone(392.0, 'triangle', 0.24, 0.14, 370.0, 0.0);
+    this.playSfxTone(369.99, 'triangle', 0.24, 0.14, 349.23, 0.25);
+    this.playSfxTone(349.23, 'triangle', 0.24, 0.14, 329.63, 0.5);
+    this.playSfxTone(329.63, 'sawtooth', 0.58, 0.09, 246.94, 0.75);
+    this.playSfxTone(329.63, 'triangle', 0.58, 0.12, 246.94, 0.75);
+  }
+
   public playWin(): void {
     if (!this.sfxEnabled) return;
     const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];

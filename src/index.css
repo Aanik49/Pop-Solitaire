@@ -15,6 +15,15 @@
   --card-w: clamp(40px, 11.7vw, 106px);
   --card-h: calc(var(--card-w) * 1.4);
   --border-w: 2.5px;
+
+  /* Theme-adaptive card & slot tokens (defaults to Comic theme) */
+  --card-radius: 10px;
+  --card-shadow: 3.5px 3.5px 0px #0D0D0D;
+  --card-shadow-hover: 5.5px 5.5px 0px #0D0D0D;
+  --slot-bg: rgba(255, 253, 245, 0.68);
+  --hud-bg: #FFE600;
+  --hud-accent: #FF1E42;
+  --hud-accent-text: #FFFFFF;
 }
 
 @media (min-width: 640px) {
@@ -31,7 +40,11 @@
   }
 }
 
-/* Prevent accidental text selection and pull-to-refresh during card dragging */
+/* Fill top system status-bar / notch safe area with Pop Yellow without shifting layout */
+html {
+  background-color: #FFE600;
+}
+
 html,
 body,
 #root {
@@ -49,9 +62,15 @@ body,
   -webkit-touch-callout: none;
 }
 
-/* Softened Pop Art Ben-Day Halftone Table Backgrounds (reduced pattern opacity for sharp card focus) */
-.pop-halftone-bg,
-.bg-theme-cyan {
+.safe-top-yellow {
+  padding-top: env(safe-area-inset-top, 0px);
+  background-color: #FFE600;
+}
+
+/* =========================================================
+   LOBBY / INTRO BACKGROUND (UNCHANGED BY GAMEPLAY THEMES)
+   ========================================================= */
+.pop-halftone-bg {
   background-color: #36C8EA;
   background-image:
     radial-gradient(rgba(0, 120, 168, 0.22) 20%, transparent 21%),
@@ -61,43 +80,85 @@ body,
   background-position: 0 0, 9px 9px, 0 0;
 }
 
-.bg-theme-mint {
-  background-color: #2FC49B;
+/* =========================================================
+   5 GAMEPLAY-ONLY ARTISTIC THEMES (Comic Default, Warhol, Memphis, Street, Manga)
+   ========================================================= */
+.gameplay-theme-comic {
+  background-color: #FFF6DC;
   background-image:
-    radial-gradient(rgba(11, 107, 81, 0.2) 20%, transparent 21%),
-    radial-gradient(rgba(11, 107, 81, 0.2) 20%, transparent 21%),
-    radial-gradient(circle at 50% 42%, rgba(126, 236, 202, 0.52) 0%, rgba(42, 186, 146, 0.92) 76%);
-  background-size: 18px 18px, 18px 18px, 100% 100%;
-  background-position: 0 0, 9px 9px, 0 0;
+    radial-gradient(rgba(13, 13, 13, 0.055) 1.5px, transparent 1.6px),
+    linear-gradient(155deg, #FFF7DF 0%, #FFEFA8 34%, #B8F0FF 72%, #8CE2FF 100%);
+  background-size: 14px 14px, 100% 100%;
+  --card-radius: 10px;
+  --card-shadow: 4px 4px 0px #0D0D0D;
+  --card-shadow-hover: 6px 6px 0px #0D0D0D;
+  --slot-bg: rgba(255, 253, 245, 0.68);
+  --hud-bg: #FFE600;
+  --hud-accent: #FF1E42;
+  --hud-accent-text: #FFFFFF;
 }
 
-.bg-theme-lavender {
-  background-color: #8B7FE8;
+.gameplay-theme-warhol {
+  background-color: #FF2E93;
   background-image:
-    radial-gradient(rgba(55, 42, 138, 0.2) 20%, transparent 21%),
-    radial-gradient(rgba(55, 42, 138, 0.2) 20%, transparent 21%),
-    radial-gradient(circle at 50% 42%, rgba(186, 178, 252, 0.5) 0%, rgba(126, 114, 224, 0.92) 76%);
-  background-size: 18px 18px, 18px 18px, 100% 100%;
-  background-position: 0 0, 9px 9px, 0 0;
+    radial-gradient(rgba(13, 13, 13, 0.14) 2px, transparent 2.1px),
+    linear-gradient(90deg, #FF47A3 0%, #FF47A3 50%, #00E5FF 50%, #00E5FF 100%);
+  background-size: 12px 12px, 100% 100%;
+  --card-radius: 4px;
+  --card-shadow: 4px 4px 0px #FF0099, 7px 7px 0px #0D0D0D;
+  --card-shadow-hover: 6px 6px 0px #00E5FF, 9px 9px 0px #0D0D0D;
+  --slot-bg: rgba(255, 255, 255, 0.78);
+  --hud-bg: #FFE600;
+  --hud-accent: #FF0099;
+  --hud-accent-text: #FFFFFF;
 }
 
-.bg-theme-peach {
-  background-color: #F4977E;
+.gameplay-theme-memphis {
+  background-color: #C9F7EB;
   background-image:
-    radial-gradient(rgba(166, 62, 36, 0.18) 20%, transparent 21%),
-    radial-gradient(rgba(166, 62, 36, 0.18) 20%, transparent 21%),
-    radial-gradient(circle at 50% 42%, rgba(255, 204, 184, 0.55) 0%, rgba(236, 141, 116, 0.92) 76%);
-  background-size: 18px 18px, 18px 18px, 100% 100%;
-  background-position: 0 0, 9px 9px, 0 0;
+    radial-gradient(#FF7EB6 2px, transparent 2.1px),
+    radial-gradient(#5CE1E6 2px, transparent 2.1px),
+    linear-gradient(135deg, #FDE2E4 0%, #FFF1C9 48%, #C9F7EB 100%);
+  background-size: 28px 28px, 28px 28px, 100% 100%;
+  background-position: 0 0, 14px 14px, 0 0;
+  --card-radius: 14px;
+  --card-shadow: 4px 4px 0px #FF6B9D, 7px 7px 0px #0D0D0D;
+  --card-shadow-hover: 6px 6px 0px #00C4B4, 9px 9px 0px #0D0D0D;
+  --slot-bg: rgba(255, 255, 255, 0.78);
+  --hud-bg: #FFE600;
+  --hud-accent: #FF6B9D;
+  --hud-accent-text: #FFFFFF;
 }
 
-.pop-yellow-halftone {
-  background-color: var(--pop-yellow);
+.gameplay-theme-street {
+  background-color: #E7E2D8;
   background-image:
-    radial-gradient(rgba(255, 166, 0, 0.35) 22%, transparent 23%),
-    radial-gradient(rgba(255, 166, 0, 0.35) 22%, transparent 23%);
-  background-size: 14px 14px;
-  background-position: 0 0, 7px 7px;
+    radial-gradient(rgba(13, 13, 13, 0.08) 1.5px, transparent 1.6px),
+    repeating-linear-gradient(-45deg, rgba(13, 13, 13, 0.03) 0px, rgba(13, 13, 13, 0.03) 6px, transparent 6px, transparent 18px),
+    linear-gradient(180deg, #F4EFE6 0%, #DFD8CA 100%);
+  background-size: 10px 10px, 100% 100%, 100% 100%;
+  --card-radius: 7px;
+  --card-shadow: 5px 5px 0px #0D0D0D;
+  --card-shadow-hover: 7px 7px 0px #FF5500;
+  --slot-bg: rgba(255, 250, 235, 0.78);
+  --hud-bg: #FFE600;
+  --hud-accent: #FF5500;
+  --hud-accent-text: #FFFFFF;
+}
+
+.gameplay-theme-manga {
+  background-color: #FFF5F7;
+  background-image:
+    radial-gradient(rgba(255, 42, 109, 0.13) 1.6px, transparent 1.7px),
+    linear-gradient(160deg, #FFF8FA 0%, #FFE3EC 52%, #E0F2FE 100%);
+  background-size: 9px 9px, 100% 100%;
+  --card-radius: 3px;
+  --card-shadow: 4px 4px 0px #1E1B4B;
+  --card-shadow-hover: 6px 6px 0px #FF2A6D;
+  --slot-bg: rgba(255, 255, 255, 0.82);
+  --hud-bg: #FFE600;
+  --hud-accent: #FF2A6D;
+  --hud-accent-text: #FFFFFF;
 }
 
 .font-bangers {
@@ -157,11 +218,11 @@ body,
 .card-slot {
   width: var(--card-w);
   height: var(--card-h);
-  border-radius: 10px;
+  border-radius: var(--card-radius);
   border: var(--border-w) solid var(--pop-ink);
-  background-color: rgba(255, 255, 255, 0.32);
-  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.16), 3px 3px 0 rgba(0, 0, 0, 0.22);
-  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.14s ease, box-shadow 0.14s ease;
+  background-color: var(--slot-bg);
+  box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.15), 3px 3px 0 rgba(13, 13, 13, 0.28);
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.14s ease, box-shadow 0.14s ease, border-radius 0.2s ease;
 }
 
 .card-slot-target {
@@ -173,9 +234,9 @@ body,
 .playing-card {
   width: var(--card-w);
   height: var(--card-h);
-  border-radius: 10px;
+  border-radius: var(--card-radius);
   border: var(--border-w) solid var(--pop-ink);
-  box-shadow: 3.5px 3.5px 0 var(--pop-ink);
+  box-shadow: var(--card-shadow);
   background-color: var(--pop-paper);
   overflow: hidden;
   touch-action: none;
@@ -184,11 +245,11 @@ body,
 
 .playing-card-playable {
   cursor: grab;
-  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.14s ease;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.14s ease, border-radius 0.2s ease;
 }
 
 .playing-card-playable:hover {
-  box-shadow: 5px 5px 0 var(--pop-ink);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .playing-card-dragging {
@@ -206,7 +267,9 @@ body,
   box-shadow: 0 0 0 4px var(--pop-magenta), 6px 6px 0 var(--pop-ink) !important;
 }
 
-/* Pop Art Card Back Patterns */
+/* =========================================================
+   CARD BACK PATTERNS (Custom & 5 Theme-Matched Variants)
+   ========================================================= */
 .card-back-dots {
   background-color: var(--pop-red);
   background-image:
@@ -247,18 +310,111 @@ body,
   background-position: 0 0, 7px 7px;
 }
 
-/* Pop Art Card Front Halftone Overlay */
-.card-front-dots-black {
-  background-image: radial-gradient(rgba(0, 210, 255, 0.22) 20%, transparent 21%);
+/* Theme-specific signature card backs from reference */
+.card-back-theme-warhol {
+  background-color: #FF0099;
+  background-image:
+    linear-gradient(90deg, #FF0099 50%, #00E5FF 50%),
+    linear-gradient(0deg, rgba(255, 235, 0, 0.85) 50%, transparent 50%);
+  background-size: 100% 100%, 100% 100%;
+}
+
+.card-back-theme-memphis {
+  background-color: #5CE1E6;
+  background-image:
+    radial-gradient(#FF6B9D 22%, transparent 23%),
+    radial-gradient(#FFE600 22%, transparent 23%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.card-back-theme-street {
+  background-color: #FFE600;
+  background-image:
+    repeating-linear-gradient(45deg, #0D0D0D 0px, #0D0D0D 3px, transparent 3px, transparent 11px),
+    repeating-linear-gradient(-45deg, #FF5500 0px, #FF5500 3px, transparent 3px, transparent 11px);
+}
+
+.card-back-theme-manga {
+  background-color: #1E1B4B;
+  background-image:
+    radial-gradient(#FF2A6D 22%, transparent 23%),
+    radial-gradient(#38BDF8 20%, transparent 21%);
+  background-size: 12px 12px;
+  background-position: 0 0, 6px 6px;
+}
+
+/* =========================================================
+   5 THEME-ADAPTIVE CARD FRONT SURFACES
+   ========================================================= */
+.card-front-dots-black,
+.card-front-comic-black {
+  background-color: #FFFDF7;
+  background-image: radial-gradient(rgba(0, 210, 255, 0.24) 20%, transparent 21%);
   background-size: 8px 8px;
 }
 
-.card-front-dots-red {
-  background-image: radial-gradient(rgba(255, 230, 0, 0.36) 22%, transparent 23%);
+.card-front-dots-red,
+.card-front-comic-red {
+  background-color: #FFFDF7;
+  background-image: radial-gradient(rgba(255, 230, 0, 0.4) 22%, transparent 23%);
   background-size: 8px 8px;
 }
 
-/* Animations */
+.card-front-warhol-black {
+  background-color: #E0FCFF;
+  background-image: radial-gradient(rgba(13, 13, 13, 0.12) 1.5px, transparent 1.6px);
+  background-size: 6px 6px;
+  box-shadow: inset 0 0 0 2px #00E5FF;
+}
+
+.card-front-warhol-red {
+  background-color: #FFF0F8;
+  background-image: radial-gradient(rgba(13, 13, 13, 0.12) 1.5px, transparent 1.6px);
+  background-size: 6px 6px;
+  box-shadow: inset 0 0 0 2px #FF0099;
+}
+
+.card-front-memphis-black,
+.card-front-memphis-red {
+  background-color: #FFFDF9;
+  background-image:
+    radial-gradient(rgba(92, 225, 230, 0.35) 1.6px, transparent 1.7px),
+    radial-gradient(rgba(255, 107, 157, 0.35) 1.6px, transparent 1.7px),
+    linear-gradient(180deg, #E3FDFD 0%, #FFFDF9 22%, #FFFDF9 78%, #FFE6F0 100%);
+  background-size: 16px 16px, 16px 16px, 100% 100%;
+  background-position: 0 0, 8px 8px, 0 0;
+}
+
+.card-front-street-black {
+  background-color: #FFFDF2;
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 230, 0, 0.36) 0%, transparent 66%);
+}
+
+.card-front-street-red {
+  background-color: #FFFDF2;
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 85, 0, 0.24) 0%, transparent 66%);
+}
+
+.card-front-manga-black {
+  background-color: #FFFFFF;
+  background-image:
+    radial-gradient(rgba(30, 27, 75, 0.13) 1.3px, transparent 1.4px),
+    linear-gradient(135deg, #FFFFFF 58%, #E0F2FE 100%);
+  background-size: 5px 5px, 100% 100%;
+}
+
+.card-front-manga-red {
+  background-color: #FFFFFF;
+  background-image:
+    radial-gradient(rgba(30, 27, 75, 0.13) 1.3px, transparent 1.4px),
+    linear-gradient(135deg, #FFFFFF 58%, #FCE7F3 100%);
+  background-size: 5px 5px, 100% 100%;
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
 @keyframes hintPulse {
   from {
     transform: translateY(0) scale(1);
@@ -355,13 +511,14 @@ body,
   animation: spinSlow 24s linear infinite;
 }
 
-@keyframes floatCard {
-  0%, 100% { transform: translateY(0px) rotate(var(--r, 0deg)); }
-  50% { transform: translateY(-10px) rotate(calc(var(--r, 0deg) + 2deg)); }
+@keyframes popFloatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
 }
 
-.animate-float-card {
-  animation: floatCard 3.6s ease-in-out infinite;
+.backdrop-float {
+  animation: popFloatSlow 9s ease-in-out infinite;
+  transform-origin: center;
 }
 
 /* Play Button Glow Pulse & Glossy Diagonal Shine Sweep */
@@ -408,7 +565,7 @@ body,
 
 @media (prefers-reduced-motion: reduce) {
   .animate-spin-slow,
-  .animate-float-card,
+  .backdrop-float,
   .playing-card-hint,
   .play-btn-glow,
   .play-btn-glow::after {

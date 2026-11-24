@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { RotateCw, Zap } from 'lucide-react';
-import { Card, CardBackStyle, CardSource, GameState, MoveHint, MoveTarget } from '../game/types';
+import { Card, CardBackStyle, CardSource, GameplayTheme, GameState, MoveHint, MoveTarget } from '../game/types';
 import { canMoveToFoundation, canMoveToTableau } from '../game/solitaireEngine';
 import { CardBackGraphic, PlayingCardView } from './CardArt';
 
 interface GameBoardProps {
   gameState: GameState;
   cardBackStyle: CardBackStyle;
+  gameplayTheme: GameplayTheme;
   hint: MoveHint | null;
   lastFlippedCardId: string | null;
   lastLandedCardIds: string[];
@@ -38,6 +39,7 @@ interface ActiveDragState {
 export const GameBoard: React.FC<GameBoardProps> = ({
   gameState,
   cardBackStyle,
+  gameplayTheme,
   hint,
   lastFlippedCardId,
   lastLandedCardIds,
@@ -361,7 +363,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <main
       ref={boardRef}
-      className="flex-1 w-full max-w-[1040px] mx-auto px-2 sm:px-4 pt-3 pb-2 flex flex-col gap-6 sm:gap-8 relative overflow-hidden"
+      className="flex-1 w-full max-w-[1040px] mx-auto px-2 sm:px-4 pt-3 pb-2 flex flex-col gap-6 sm:gap-8 relative z-10 overflow-hidden"
     >
       {/* Top Row: Stock, Waste (with extra visual gap), Spacer, and 4 Foundations */}
       <section
@@ -410,7 +412,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     : '3.5px 3.5px 0 #0D0D0D',
               }}
             >
-              <CardBackGraphic styleVariant={cardBackStyle} />
+              <CardBackGraphic styleVariant={cardBackStyle} gameplayTheme={gameplayTheme} />
               {/* Stock card count badge in bottom corner */}
               <span className="absolute bottom-1 right-1 bg-[#FFE600] text-[#0D0D0D] border-2 border-[#0D0D0D] rounded px-1 font-bangers text-xs leading-tight tabular-nums shadow-[1px_1px_0_#0D0D0D]">
                 {gameState.stock.length}
@@ -430,6 +432,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               <PlayingCardView
                 key={card.id}
                 card={card}
+                gameplayTheme={gameplayTheme}
                 isPlayable={isTop}
                 isHinted={hintedSet.has(card.id)}
                 isLandedAnim={landedSet.has(card.id)}
@@ -487,6 +490,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               {secondCard && isTopDragged && (
                 <PlayingCardView
                   card={secondCard}
+                  gameplayTheme={gameplayTheme}
                   isPlayable={false}
                   style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
                 />
@@ -496,6 +500,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <PlayingCardView
                   key={topCard.id}
                   card={topCard}
+                  gameplayTheme={gameplayTheme}
                   isPlayable={true}
                   isHinted={hintedSet.has(topCard.id)}
                   isTargetHighlight={isDropHighlighted || isHintTarget}
@@ -549,7 +554,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             >
               {/* Empty Column King Slot */}
               <div
-                className={`card-dimensions rounded-[10px] border-[length:var(--border-w)] border-dashed border-[#0D0D0D]/40 bg-white/18 absolute top-0 left-0 flex items-center justify-center transition-all ${
+                className={`card-dimensions rounded-[var(--card-radius)] border-[length:var(--border-w)] border-dashed border-[#0D0D0D]/40 bg-white/25 absolute top-0 left-0 flex items-center justify-center transition-all ${
                   col.length === 0 && (isDropHighlighted || isHintTarget) ? 'card-slot-target !border-solid' : ''
                 }`}
               >
@@ -569,6 +574,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     key={`${gameState.dealId}-${card.id}`}
                     card={card}
                     cardBackStyle={cardBackStyle}
+                    gameplayTheme={gameplayTheme}
                     isPlayable={card.faceUp}
                     isHinted={hintedSet.has(card.id)}
                     isTargetHighlight={isLastCard && (isDropHighlighted || isHintTarget)}
@@ -637,6 +643,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <PlayingCardView
               key={`drag-${card.id}`}
               card={card}
+              gameplayTheme={gameplayTheme}
               isPlayable={false}
               isDragging={true}
               style={{

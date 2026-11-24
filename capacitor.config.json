@@ -3,13 +3,17 @@
   "appName": "POP! Solitaire",
   "webDir": "dist",
   "android": {
-    "backgroundColor": "#00D2FF",
+    "backgroundColor": "#FFE600",
     "allowMixedContent": false
   },
   "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "backgroundColor": "#FFE600"
+    },
     "SplashScreen": {
       "launchShowDuration": 800,
-      "backgroundColor": "#00D2FF",
+      "backgroundColor": "#FFE600",
       "showSpinner": false
     }
   }

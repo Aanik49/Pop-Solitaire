@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Play, Volume2, VolumeX, Music, Calendar, Award, Check } from 'lucide-react';
-import { BackgroundTheme, DrawMode } from '../game/types';
+import { DrawMode } from '../game/types';
 import { SuitIcon } from './CardArt';
 
 interface SplashScreenProps {
-  backgroundTheme: BackgroundTheme;
   drawMode: DrawMode;
   sfxEnabled: boolean;
   musicEnabled: boolean;
   dailyDateLabel: string;
   isDailyWinner: boolean;
   dailyStreak: number;
+  quitToastVisible: boolean;
   onSelectDrawMode: (mode: DrawMode) => void;
   onToggleSfx: () => void;
   onToggleMusic: () => void;
@@ -20,13 +20,13 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
-  backgroundTheme,
   drawMode,
   sfxEnabled,
   musicEnabled,
   dailyDateLabel,
   isDailyWinner,
   dailyStreak,
+  quitToastVisible,
   onSelectDrawMode,
   onToggleSfx,
   onToggleMusic,
@@ -46,8 +46,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   }, [onStartGame]);
 
   return (
-    <div className={`relative w-full h-full bg-theme-${backgroundTheme} overflow-hidden flex flex-col items-center justify-between px-4 py-4 sm:py-7`}>
-      {/* Softened Rotating Comic Sunburst Backdrop (reduced opacity for stronger card focus) */}
+    <div className="relative w-full h-full pop-halftone-bg overflow-hidden flex flex-col items-center justify-between px-4 py-4 sm:py-7">
+      {/* Softened Rotating Comic Sunburst Backdrop */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
         <svg className="w-[175vmax] h-[175vmax] animate-spin-slow" viewBox="0 0 200 200" aria-hidden="true">
           <g transform="translate(100,100)">
@@ -67,7 +67,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         </svg>
       </div>
 
-      {/* Top Utility Bar: Clean Icon-Only Music & SFX Toggles (Mobile App button removed) */}
+      {/* Top Utility Bar: Clean Icon-Only Music & SFX Toggles */}
       <div className="relative z-10 w-full max-w-3xl flex items-center justify-end gap-2">
         <button
           type="button"
@@ -103,7 +103,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
       {/* Center Hero Stage: Daily Winner Badge + Choreographed Expand/Retract 3-Card Fan + Title Lockup */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-xl my-auto">
-        {/* Daily Winner Comic Badge (visible once today's Daily Challenge is completed) */}
+        {/* Daily Winner Comic Badge */}
         {isDailyWinner && (
           <motion.div
             initial={{ scale: 0.6, opacity: 0, rotate: -6 }}
@@ -119,10 +119,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           </motion.div>
         )}
 
-        {/* Lobby 3-Card Choreographed Animation:
-            Behind cards start tucked behind Ace -> after 0.5s expand left & right to reveal card values -> tuck back behind Ace continuously */}
+        {/* Lobby 3-Card Choreographed Animation */}
         <div className="relative flex items-center justify-center h-36 sm:h-44 mb-2 sm:mb-3 w-full">
-          {/* Left Behind Card: Queen of Clubs (expands left to show Q ♣ value, then returns behind Ace) */}
+          {/* Left Behind Card: Queen of Clubs */}
           <motion.div
             animate={{
               x: [0, 0, -90, -90, 0, 0],
@@ -149,7 +148,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             </div>
           </motion.div>
 
-          {/* Right Behind Card: King of Diamonds (expands right to show K ♦ value, then returns behind Ace) */}
+          {/* Right Behind Card: King of Diamonds */}
           <motion.div
             animate={{
               x: [0, 0, 90, 90, 0, 0],
@@ -165,7 +164,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             }}
             className="absolute z-[2] w-24 h-32 sm:w-28 sm:h-40 rounded-xl border-[3.5px] border-[#0D0D0D] bg-[#FFFDF7] shadow-[5px_5px_0_#0D0D0D] p-2 flex flex-col justify-between card-front-dots-red"
           >
-            {/* Right-aligned top corner ensures K ♦ value is unmistakably visible when expanding right */}
             <div className="flex flex-col items-center w-fit leading-none text-[#FF1E42] self-end">
               <span className="font-bangers text-2xl sm:text-3xl leading-none">K</span>
               <div className="w-4 h-4"><SuitIcon suit="diamonds" /></div>
@@ -177,7 +175,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             </div>
           </motion.div>
 
-          {/* Center Front Card: Ace of Hearts (stays in front, gently levitating) */}
+          {/* Center Front Card: Ace of Hearts */}
           <motion.div
             animate={{
               y: [-4, -14, -4],
@@ -326,6 +324,26 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
       {/* Bottom vertical balance spacer */}
       <div className="h-2 sm:h-4 shrink-0" aria-hidden="true" />
+
+      {/* Designed Pop Art Lobby Back-to-Quit Toast */}
+      <AnimatePresence>
+        {quitToastVisible && (
+          <motion.div
+            initial={{ y: 36, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 24, opacity: 0, scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+            role="status"
+            aria-live="polite"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[10050] max-w-[92vw] bg-[#0D0D0D] text-[#FFE600] border-[3px] border-[#FFE600] shadow-[4px_4px_0_#FF1E42] rounded-2xl px-5 py-2.5 flex items-center gap-2.5"
+          >
+            <span className="w-3 h-3 rounded-full bg-[#FF1E42] border border-[#FFE600] shrink-0" aria-hidden="true" />
+            <span className="font-bangers text-base sm:text-lg tracking-wider text-center leading-tight">
+              Press Back two times in a row for quiting game
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

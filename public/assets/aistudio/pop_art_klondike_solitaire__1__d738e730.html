@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POP! SOLITAIRE</title>
+    <!-- Google Fonts for authentic comic book typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --pop-cyan: #00D2FF;
+            --pop-cyan-dark: #0095CC;
+            --pop-yellow: #FFE600;
+            --pop-red: #FF1E42;
+            --pop-blue: #1D4ED8;
+            --pop-magenta: #FF0099;
+            --pop-white: #FFFFFF;
+            --pop-black: #0D0D0D;
+            --card-w: clamp(44px, 11.8vw, 108px);
+            --card-h: calc(var(--card-w) * 1.4);
+            --border-w: 3px;
+            --card-radius: 10px;
+            --card-shadow: 4px 4px 0px #0D0D0D;
+            --card-shadow-hover: 6px 6px 0px #0D0D0D;
+            --slot-bg: rgba(255, 253, 245, 0.68);
+            --slot-border: #0D0D0D;
+            --hud-bg: #FFE600;
+            --hud-accent: #FF1E42;
+            --hud-accent-text: #FFFFFF;
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --card-w: clamp(72px, 10.2vw, 112px);
+                --border-w: 3.5px;
+            }
+        }
+
+        /* =========================================================
+           5 DISTINCT ARTISTIC STYLE THEME TOKENS
+           ========================================================= */
+        body[data-style="comic"] {
+            background-color: #FFF6DC;
+            background-image:
+                radial-gradient(rgba(13, 13, 13, 0.055) 1.5px, transparent 1.6px),
+                linear-gradient(155deg, #FFF7DF 0%, #FFEFA8 34%, #B8F0FF 72%, #8CE2FF 100%);
+            background-size: 14px 14px, 100% 100%;
+            --card-radius: 10px;
+            --card-shadow: 4px 4px 0px #0D0D0D;
+            --card-shadow-hover: 6px 6px 0px #0D0D0D;
+            --slot-bg: rgba(255, 253, 245, 0.68);
+            --hud-bg: #FFE600;
+            --hud-accent: #FF1E42;
+            --hud-accent-text: #FFFFFF;
+        }
+
+        body[data-style="warhol"] {
+            background-color: #FF2E93;
+            background-image:
+                radial-gradient(rgba(13, 13, 13, 0.16) 2px, transparent 2.1px),
+                linear-gradient(90deg, #FF47A3 0%, #FF47A3 50%, #00E5FF 50%, #00E5FF 100%);
+            background-size: 12px 12px, 100% 100%;
+            --card-radius: 4px;
+            --card-shadow: 4px 4px 0px #FF0099, 7px 7px 0px #0D0D0D;
+            --card-shadow-hover: 6px 6px 0px #00E5FF, 9px 9px 0px #0D0D0D;
+            --slot-bg: rgba(255, 255, 255, 0.76);
+            --hud-bg: #FFEB00;
+            --hud-accent: #FF0099;
+            --hud-accent-text: #FFFFFF;
+        }
+
+        body[data-style="memphis"] {
+            background-color: #C9F7EB;
+            background-image:
+                radial-gradient(#FF7EB6 2px, transparent 2.1px),
+                radial-gradient(#5CE1E6 2px, transparent 2.1px),
+                linear-gradient(135deg, #FDE2E4 0%, #FFF1C9 48%, #C9F7EB 100%);
+            background-size: 28px 28px, 28px 28px, 100% 100%;
+            background-position: 0 0, 14px 14px, 0 0;
+            --card-radius: 14px;
+            --card-shadow: 4px 4px 0px #FF6B9D, 7px 7px 0px #0D0D0D;
+            --card-shadow-hover: 6px 6px 0px #00C4B4, 9px 9px 0px #0D0D0D;
+            --slot-bg: rgba(255, 255, 255, 0.78);
+            --hud-bg: #A0E7E5;
+            --hud-accent: #FF6B9D;
+            --hud-accent-text: #FFFFFF;
+        }
+
+        body[data-style="street"] {
+            background-color: #E7E2D8;
+            background-image:
+                radial-gradient(rgba(13, 13, 13, 0.09) 1.5px, transparent 1.6px),
+                repeating-linear-gradient(-45deg, rgba(13,13,13,0.03) 0px, rgba(13,13,13,0.03) 6px, transparent 6px, transparent 18px),
+                linear-gradient(180deg, #F4EFE6 0%, #DFD8CA 100%);
+            background-size: 10px 10px, 100% 100%, 100% 100%;
+            --card-radius: 7px;
+            --card-shadow: 5px 5px 0px #0D0D0D;
+            --card-shadow-hover: 7px 7px 0px #FF5500;
+            --slot-bg: rgba(255, 250, 235, 0.75);
+            --hud-bg: #FF5500;
+            --hud-accent: #FFE600;
+            --hud-accent-text: #0D0D0D;
+        }
+
+        body[data-style="manga"] {
+            background-color: #FFF5F7;
+            background-image:
+                radial-gradient(rgba(255, 42, 109, 0.14) 1.6px, transparent 1.7px),
+                linear-gradient(160deg, #FFF8FA 0%, #FFE3EC 52%, #E0F2FE 100%);
+            background-size: 9px 9px, 100% 100%;
+            --card-radius: 3px;
+            --card-shadow: 4px 4px 0px #1E1B4B;
+            --card-shadow-hover: 6px 6px 0px #FF2A6D;
+            --slot-bg: rgba(255, 255, 255, 0.8);
+            --hud-bg: #FFFFFF;
+            --hud-accent: #FF2A6D;
+            --hud-accent-text: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: 'Comic Neue', cursive, sans-serif;
+            background-color: #FFF6DC;
+            /* Warm vintage comic-paper & sky-blue gradient base with subtle halftone grain */
+            background-image: 
+                radial-gradient(rgba(13, 13, 13, 0.055) 1.5px, transparent 1.6px),
+                linear-gradient(155deg, #FFF7DF 0%, #FFEFA8 34%, #B8F0FF 72%, #8CE2FF 100%);
+            background-size: 14px 14px, 100% 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Illustrated Multi-Layered Pop Art Tabletop Backdrop */
+        #pop-art-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        #pop-art-backdrop svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Subtle ambient drift on background Pop Art motifs */
+        @keyframes popFloatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(2deg); }
+        }
+        .backdrop-float {
+            animation: popFloatSlow 9s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .font-bangers {
+            font-family: 'Bangers', cursive, sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        /* Comic Outline Text */
+        .comic-text-stroke {
+            -webkit-text-stroke: 1.5px var(--pop-black);
+            text-shadow: 2px 2px 0px var(--pop-black);
+        }
+        .comic-title-stroke {
+            -webkit-text-stroke: 2px var(--pop-black);
+            text-shadow: 3px 3px 0px var(--pop-black);
+        }
+
+        /* Comic Buttons & Panels */
+        .pop-box {
+            border: var(--border-w) solid var(--pop-black);
+            box-shadow: 4px 4px 0px var(--pop-black);
+        }
+
+        .pop-btn {
+            border: var(--border-w) solid var(--pop-black);
+            box-shadow: 3px 3px 0px var(--pop-black);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+            cursor: pointer;
+        }
+
+        .pop-btn:hover:not(:disabled) {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--pop-black);
+        }
+
+        .pop-btn:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: 0px 0px 0px var(--pop-black);
+        }
+
+        .pop-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Board Layout */
+        #game-board {
+            flex: 1;
+            width: 100%;
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(10px, 2vh, 22px);
+            position: relative;
+            z-index: 10;
+        }
+
+        .top-row {
+            display: grid;
+            grid-template-columns: repeat(7, var(--card-w));
+            justify-content: space-between;
+            align-items: start;
+            width: 100%;
+        }
+
+        .tableau-row {
+            display: grid;
+            grid-template-columns: repeat(7, var(--card-w));
+            justify-content: space-between;
+            flex: 1;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Card Slots */
+        .card-slot {
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: var(--card-radius);
+            border: var(--border-w) solid var(--pop-black);
+            background-color: var(--slot-bg);
+            backdrop-filter: blur(2px);
+            box-shadow: inset 3px 3px 0px rgba(0, 0, 0, 0.16), 3px 3px 0px rgba(13, 13, 13, 0.35);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.15s ease, transform 0.15s ease, border-radius 0.2s ease;
+        }
+
+        .card-slot.highlight-target {
+            background-color: var(--pop-yellow) !important;
+            transform: scale(1.04);
+            box-shadow: 0 0 0 4px var(--pop-magenta), 4px 4px 0px var(--pop-black);
+        }
+
+        .tableau-col {
+            width: var(--card-w);
+            height: 100%;
+            position: relative;
+        }
+
+        .tableau-base-slot {
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: var(--card-radius);
+            border: var(--border-w) dashed rgba(13, 13, 13, 0.62);
+            background-color: rgba(255, 253, 245, 0.45);
+            box-shadow: inset 2px 2px 0px rgba(255, 255, 255, 0.5);
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Playing Card Styling */
+        .playing-card {
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: var(--card-radius);
+            border: var(--border-w) solid var(--pop-black);
+            box-shadow: var(--card-shadow);
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--pop-white);
+            cursor: grab;
+            transition: box-shadow 0.12s ease, border-radius 0.2s ease;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .playing-card:hover {
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .playing-card.selected-card {
+            box-shadow: 0 0 0 3px var(--pop-yellow), 6px 6px 0px var(--pop-black) !important;
+            transform: translateY(-4px);
+            z-index: 40 !important;
+        }
+
+        .playing-card.hint-card {
+            box-shadow: 0 0 0 4px #00FF66, 6px 6px 0px var(--pop-black) !important;
+            animation: hintPulse 0.75s ease-in-out infinite alternate;
+            z-index: 45 !important;
+        }
+
+        @keyframes hintPulse {
+            from { transform: translateY(0px) scale(1); }
+            to { transform: translateY(-6px) scale(1.03); }
+        }
+
+        .playing-card.dragging {
+            cursor: grabbing;
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.85) !important;
+            z-index: 9999 !important;
+            pointer-events: none;
+            transition: none !important;
+        }
+
+        /* Face-Down Pop Art Card Back (5 Style Variants) */
+        .card-back {
+            width: 100%;
+            height: 100%;
+            background-color: var(--pop-red);
+            background-image: 
+                radial-gradient(var(--pop-yellow) 24%, transparent 25%),
+                radial-gradient(var(--pop-yellow) 24%, transparent 25%);
+            background-size: 12px 12px;
+            background-position: 0 0, 6px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .card-back.back-warhol {
+            background-color: #FF0099;
+            background-image:
+                linear-gradient(90deg, #FF0099 50%, #00E5FF 50%),
+                linear-gradient(0deg, rgba(255, 235, 0, 0.85) 50%, transparent 50%);
+            background-size: 100% 100%, 100% 100%;
+        }
+
+        .card-back.back-memphis {
+            background-color: #5CE1E6;
+            background-image:
+                radial-gradient(#FF6B9D 22%, transparent 23%),
+                radial-gradient(#FFE600 22%, transparent 23%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+        }
+
+        .card-back.back-street {
+            background-color: #FFE600;
+            background-image:
+                repeating-linear-gradient(45deg, #0D0D0D 0px, #0D0D0D 3px, transparent 3px, transparent 11px),
+                repeating-linear-gradient(-45deg, #FF5500 0px, #FF5500 3px, transparent 3px, transparent 11px);
+        }
+
+        .card-back.back-manga {
+            background-color: #1E1B4B;
+            background-image:
+                radial-gradient(#FF2A6D 22%, transparent 23%),
+                radial-gradient(#38BDF8 20%, transparent 21%);
+            background-size: 12px 12px;
+            background-position: 0 0, 6px 6px;
+        }
+
+        .card-back-inner {
+            width: 78%;
+            height: 82%;
+            border: 2.5px solid var(--pop-black);
+            border-radius: 6px;
+            background: var(--pop-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 2px 0px var(--pop-black);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .back-warhol .card-back-inner { background: #FFEB00; border-radius: 2px; }
+        .back-memphis .card-back-inner { background: #FFFFFF; border-radius: 12px; }
+        .back-street .card-back-inner { background: #FF1E42; border-radius: 4px; }
+        .back-manga .card-back-inner { background: #FFF5F7; border-radius: 2px; }
+
+        /* Card Front Colors & 5 Style Surface Variants */
+        .suit-red {
+            color: var(--pop-red);
+        }
+        .suit-black {
+            color: var(--pop-black);
+        }
+
+        .card-front {
+            width: 100%;
+            height: 100%;
+            background-color: #FFFDF7;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3px 4px;
+        }
+
+        /* Style 1: Comic Ben-Day Corner Halftone */
+        .card-front.style-comic::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(0, 210, 255, 0.24) 20%, transparent 21%);
+            background-size: 8px 8px;
+            pointer-events: none;
+        }
+        .card-front.style-comic.is-red::before {
+            background-image: radial-gradient(rgba(255, 230, 0, 0.42) 22%, transparent 23%);
+        }
+
+        /* Style 2: Andy Warhol Neon Silkscreen Duotone Tint */
+        .card-front.style-warhol {
+            background-color: #E0FCFF;
+            border: 2px solid #00E5FF;
+        }
+        .card-front.style-warhol.is-red {
+            background-color: #FFF0F8;
+            border: 2px solid #FF0099;
+        }
+        .card-front.style-warhol::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(13, 13, 13, 0.12) 1.5px, transparent 1.6px);
+            background-size: 6px 6px;
+            pointer-events: none;
+        }
+
+        /* Style 3: Memphis 80s Pastel Band & Terrazzo Dots */
+        .card-front.style-memphis {
+            background: linear-gradient(180deg, #E3FDFD 0%, #FFFDF9 22%, #FFFDF9 78%, #FFE6F0 100%);
+        }
+        .card-front.style-memphis::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#5CE1E6 1.5px, transparent 1.6px), radial-gradient(#FF6B9D 1.5px, transparent 1.6px);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        /* Style 4: Neo-Pop Street Graffiti Marker & Spray Accent */
+        .card-front.style-street {
+            background-color: #FFFDF2;
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 230, 0, 0.38) 0%, transparent 66%);
+        }
+        .card-front.style-street.is-red {
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 85, 0, 0.24) 0%, transparent 66%);
+        }
+
+        /* Style 5: Retro Japanese Manga Screentone & Corner Frame */
+        .card-front.style-manga {
+            background: linear-gradient(135deg, #FFFFFF 58%, #FCE7F3 100%);
+        }
+        .card-front.style-manga:not(.is-red) {
+            background: linear-gradient(135deg, #FFFFFF 58%, #E0F2FE 100%);
+        }
+        .card-front.style-manga::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(30, 27, 75, 0.14) 1.3px, transparent 1.4px);
+            background-size: 5px 5px;
+            pointer-events: none;
+        }
+
+        /* Style Switcher Pill Bar */
+        .style-pill {
+            border: 2.5px solid #0D0D0D;
+            box-shadow: 2px 2px 0px #0D0D0D;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+            cursor: pointer;
+        }
+        .style-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 3px 3px 0px #0D0D0D;
+        }
+        .style-pill.active-style {
+            transform: translate(1px, 1px);
+            box-shadow: 0px 0px 0px #0D0D0D, 0 0 0 2.5px #0D0D0D;
+            background-color: #0D0D0D !important;
+            color: #FFE600 !important;
+        }
+
+        .card-corner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 0.92;
+            z-index: 2;
+            width: fit-content;
+        }
+
+        .card-corner-bottom {
+            transform: rotate(180deg);
+            align-self: flex-end;
+        }
+
+        .card-rank {
+            font-family: 'Bangers', cursive, sans-serif;
+            font-size: clamp(14px, 2.3vw, 24px);
+            letter-spacing: 0.02em;
+        }
+
+        .card-mini-suit {
+            width: clamp(10px, 1.5vw, 16px);
+            height: clamp(10px, 1.5vw, 16px);
+        }
+
+        .card-center-art {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Action Callout Popups (POW!, SNAP!, BAM!) */
+        @keyframes comicPopBurst {
+            0% {
+                transform: translate(-50%, -50%) scale(0.15) rotate(-18deg);
+                opacity: 0;
+            }
+            35% {
+                transform: translate(-50%, -50%) scale(1.18) rotate(6deg);
+                opacity: 1;
+            }
+            65% {
+                transform: translate(-50%, -50%) scale(0.96) rotate(-3deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -85%) scale(1.08) rotate(2deg);
+                opacity: 0;
+            }
+        }
+
+        .comic-callout {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            animation: comicPopBurst 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 145px;
+            height: 115px;
+        }
+
+        /* Stock Refresh Icon Spin */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg); }
+            75% { transform: rotate(8deg); }
+        }
+        .stock-empty:hover {
+            animation: wiggle 0.3s ease-in-out;
+        }
+
+        /* Win Screen Burst Animation */
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .sunburst-spin {
+            animation: spinSlow 18s linear infinite;
+        }
+    </style>
+</head>
+<body data-style="comic">
+
+    <!-- Artistic Multi-Layered Pop Art Comic Tabletop Background (Dynamically Rendered per Style) -->
+    <div id="pop-art-backdrop" aria-hidden="true"></div>
+
+    <!-- Top Pop Art Comic Header HUD -->
+    <header id="main-header" class="w-full bg-[#FFE600] border-b-4 border-[#0D0D0D] px-2 sm:px-4 py-1.5 flex flex-col gap-1.5 z-50 shadow-[0_4px_0_#0D0D0D] transition-colors duration-200">
+        <!-- Row 1: Brand, Scoreboard & Controls -->
+        <div class="w-full flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
+            <!-- Brand Logo & Draw Mode Toggle -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <div id="brand-badge" class="bg-[#FF1E42] text-white font-bangers text-lg sm:text-2xl md:text-3xl px-2.5 py-0.5 rounded-lg border-[3px] border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] -rotate-2 tracking-wider transition-colors duration-200">
+                    POP! SOLITAIRE
+                </div>
+                <button id="btn-draw-mode" onclick="toggleDrawMode()" class="pop-btn bg-white text-[#0D0D0D] font-bangers text-xs sm:text-base px-2 sm:px-2.5 py-1 rounded-lg tracking-wide" title="Toggle Draw 1 / Draw 3">
+                    DRAW 1
+                </button>
+            </div>
+
+            <!-- Scoreboard Pills (Score, Moves & Timer) -->
+            <div class="flex items-center gap-1.5 sm:gap-2.5">
+                <div class="bg-white border-[3px] border-[#0D0D0D] rounded-lg px-2 py-0.5 sm:py-1 shadow-[3px_3px_0_#0D0D0D] flex items-center gap-1">
+                    <span class="font-bangers text-xs sm:text-sm text-[#FF1E42] tracking-wide">SCORE</span>
+                    <span id="score-display" class="font-bangers text-base sm:text-xl text-[#0D0D0D] leading-none">0</span>
+                </div>
+                <div class="bg-white border-[3px] border-[#0D0D0D] rounded-lg px-2 py-0.5 sm:py-1 shadow-[3px_3px_0_#0D0D0D] flex items-center gap-1">
+                    <span class="font-bangers text-xs sm:text-sm text-[#1D4ED8] tracking-wide">MOVES</span>
+                    <span id="move-count" class="font-bangers text-base sm:text-xl text-[#0D0D0D] leading-none">0</span>
+                </div>
+                <div class="bg-white border-[3px] border-[#0D0D0D] rounded-lg px-2 py-0.5 sm:py-1 shadow-[3px_3px_0_#0D0D0D] flex items-center gap-1">
+                    <span class="font-bangers text-xs sm:text-sm text-[#FF0099] tracking-wide">TIME</span>
+                    <span id="timer-display" class="font-bangers text-base sm:text-xl text-[#0D0D0D] leading-none">00:00</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button id="btn-autocomplete" onclick="triggerAutoComplete()" class="hidden pop-btn bg-[#00FF66] text-[#0D0D0D] font-bangers text-sm sm:text-lg px-2.5 py-1 rounded-lg flex items-center gap-1 animate-bounce" title="Auto-Complete Game">
+                    <span>⚡ FINISH!</span>
+                </button>
+
+                <button id="btn-hint" onclick="showHint()" class="pop-btn bg-[#FFE600] hover:bg-[#FFF04D] text-[#0D0D0D] font-bangers text-sm sm:text-lg px-2 sm:px-3 py-1 rounded-lg flex items-center gap-1" title="Show Legal Move Hint">
+                    <span>💡</span>
+                    <span class="hidden md:inline">HINT</span>
+                </button>
+
+                <button id="btn-undo" onclick="undoMove()" disabled class="pop-btn bg-[#00D2FF] text-[#0D0D0D] font-bangers text-sm sm:text-lg px-2 sm:px-3 py-1 rounded-lg flex items-center gap-1" title="Undo Move">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                    </svg>
+                    <span class="hidden md:inline">UNDO</span>
+                </button>
+
+                <button id="btn-sound" onclick="toggleSound()" class="pop-btn bg-white text-[#0D0D0D] font-bangers text-sm sm:text-lg px-2 py-1 rounded-lg flex items-center justify-center" title="Toggle Sound">
+                    <span id="sound-icon">🔊</span>
+                </button>
+
+                <button id="btn-new-deal" onclick="startNewGame()" class="pop-btn bg-[#FF1E42] text-white font-bangers text-sm sm:text-lg px-2.5 sm:px-3.5 py-1 rounded-lg flex items-center gap-1 tracking-wide" title="New Deal">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>
+                    </svg>
+                    <span>DEAL</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Row 2: 5-Style Artistic Theme Switcher -->
+        <nav aria-label="Art Style Switcher" class="w-full flex items-center justify-center sm:justify-between gap-1.5 pt-1 border-t-2 border-[#0D0D0D]/20 overflow-x-auto">
+            <span class="hidden sm:inline-flex items-center gap-1 font-bangers text-sm md:text-base text-[#0D0D0D] tracking-wider shrink-0">
+                🎨 ART STYLE:
+            </span>
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <button data-style-btn="comic" onclick="setArtStyle('comic')" class="style-pill active-style bg-white text-[#0D0D0D] font-bangers text-xs sm:text-sm md:text-base px-2.5 py-0.5 rounded-full flex items-center gap-1 tracking-wide">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#FF1E42] border border-black"></span>
+                    <span>1. COMIC</span>
+                </button>
+                <button data-style-btn="warhol" onclick="setArtStyle('warhol')" class="style-pill bg-white text-[#0D0D0D] font-bangers text-xs sm:text-sm md:text-base px-2.5 py-0.5 rounded-full flex items-center gap-1 tracking-wide">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#FF0099] border border-black"></span>
+                    <span>2. WARHOL</span>
+                </button>
+                <button data-style-btn="memphis" onclick="setArtStyle('memphis')" class="style-pill bg-white text-[#0D0D0D] font-bangers text-xs sm:text-sm md:text-base px-2.5 py-0.5 rounded-full flex items-center gap-1 tracking-wide">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#5CE1E6] border border-black"></span>
+                    <span>3. MEMPHIS</span>
+                </button>
+                <button data-style-btn="street" onclick="setArtStyle('street')" class="style-pill bg-white text-[#0D0D0D] font-bangers text-xs sm:text-sm md:text-base px-2.5 py-0.5 rounded-full flex items-center gap-1 tracking-wide">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#FF5500] border border-black"></span>
+                    <span>4. STREET</span>
+                </button>
+                <button data-style-btn="manga" onclick="setArtStyle('manga')" class="style-pill bg-white text-[#0D0D0D] font-bangers text-xs sm:text-sm md:text-base px-2.5 py-0.5 rounded-full flex items-center gap-1 tracking-wide">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#FF2A6D] border border-black"></span>
+                    <span>5. MANGA</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Solitaire Game Arena -->
+    <main id="game-board">
+        <!-- Top Row: Stock, Waste, Spacer, and 4 Foundations -->
+        <section class="top-row" aria-label="Stock, Waste, and Foundation Piles">
+            <!-- Stock Pile -->
+            <div id="stock-slot" class="card-slot cursor-pointer stock-empty" onclick="handleStockClick()" title="Draw Card">
+                <svg class="w-8 h-8 sm:w-10 sm:h-10 text-[#0D0D0D] opacity-65" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
+                </svg>
+            </div>
+
+            <!-- Waste Pile -->
+            <div id="waste-slot" class="card-slot" data-drop-type="waste"></div>
+
+            <!-- Empty Spacer Column -->
+            <div class="pointer-events-none"></div>
+
+            <!-- 4 Foundation Piles (Any Ace starts a pile; builds up A -> K by suit) -->
+            <div id="foundation-0" class="card-slot foundation-slot" data-drop-type="foundation" data-index="0">
+                <span class="font-bangers text-3xl sm:text-4xl text-[#0D0D0D] opacity-30 pointer-events-none">A</span>
+            </div>
+            <div id="foundation-1" class="card-slot foundation-slot" data-drop-type="foundation" data-index="1">
+                <span class="font-bangers text-3xl sm:text-4xl text-[#0D0D0D] opacity-30 pointer-events-none">A</span>
+            </div>
+            <div id="foundation-2" class="card-slot foundation-slot" data-drop-type="foundation" data-index="2">
+                <span class="font-bangers text-3xl sm:text-4xl text-[#0D0D0D] opacity-30 pointer-events-none">A</span>
+            </div>
+            <div id="foundation-3" class="card-slot foundation-slot" data-drop-type="foundation" data-index="3">
+                <span class="font-bangers text-3xl sm:text-4xl text-[#0D0D0D] opacity-30 pointer-events-none">A</span>
+            </div>
+        </section>
+
+        <!-- Bottom Row: 7 Tableau Columns -->
+        <section class="tableau-row" aria-label="Tableau Columns">
+            <div id="tableau-0" class="tableau-col" data-drop-type="tableau" data-index="0"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+            <div id="tableau-1" class="tableau-col" data-drop-type="tableau" data-index="1"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+            <div id="tableau-2" class="tableau-col" data-drop-type="tableau" data-index="2"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+            <div id="tableau-3" class="tableau-col" data-drop-type="tableau" data-index="3"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+            <div id="tableau-4" class="tableau-col" data-drop-type="tableau" data-index="4"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+            <div id="tableau-5" class="tableau-col" data-drop-type="tableau" data-index="5"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+            <div id="tableau-6" class="tableau-col" data-drop-type="tableau" data-index="6"><div class="tableau-base-slot"><span class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D] opacity-20 pointer-events-none">K</span></div></div>
+        </section>
+    </main>
+
+    <!-- Victory Comic Book Explosion Modal -->
+    <div id="victory-overlay" class="hidden fixed inset-0 z-[10005] bg-black/70 flex items-center justify-center p-4 overflow-hidden">
+        <!-- Spinning Comic Sunburst Rays -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-80">
+            <svg class="w-[160vmax] h-[160vmax] sunburst-spin" viewBox="0 0 200 200">
+                <g transform="translate(100,100)">
+                    <polygon points="0,0 -15,-100 15,-100" fill="#FFE600"/>
+                    <polygon points="0,0 45,-90 70,-70" fill="#FF1E42"/>
+                    <polygon points="0,0 90,-45 100,-15" fill="#FFE600"/>
+                    <polygon points="0,0 100,15 90,45" fill="#FF0099"/>
+                    <polygon points="0,0 70,70 45,90" fill="#FFE600"/>
+                    <polygon points="0,0 15,100 -15,100" fill="#00D2FF"/>
+                    <polygon points="0,0 -45,90 -70,70" fill="#FFE600"/>
+                    <polygon points="0,0 -90,45 -100,15" fill="#FF1E42"/>
+                    <polygon points="0,0 -100,-15 -90,-45" fill="#FFE600"/>
+                    <polygon points="0,0 -70,-70 -45,-90" fill="#FF0099"/>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Victory Comic Panel -->
+        <div class="relative bg-[#FFE600] border-[5px] border-[#0D0D0D] shadow-[10px_10px_0_#0D0D0D] rounded-2xl max-w-md w-full p-6 text-center transform -rotate-1">
+            <!-- Top Starburst Badge -->
+            <div class="inline-block bg-[#FF1E42] text-white font-bangers text-2xl px-4 py-1 border-[3px] border-[#0D0D0D] shadow-[4px_4px_0_#0D0D0D] rounded-full -mt-12 mb-3 rotate-3">
+                ★ SENSATIONAL! ★
+            </div>
+
+            <h2 class="font-bangers text-5xl sm:text-6xl text-[#00D2FF] comic-title-stroke tracking-wider mb-2">
+                VICTORY!
+            </h2>
+            <p class="font-bold text-lg text-[#0D0D0D] mb-5">
+                POW! Every single card stacked from Ace to King!
+            </p>
+
+            <!-- Final Stats -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+                <div class="bg-white border-[3px] border-[#0D0D0D] rounded-xl p-2.5 shadow-[4px_4px_0_#0D0D0D]">
+                    <div class="font-bangers text-sm text-[#FF1E42]">SCORE</div>
+                    <div id="win-score" class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D]">0</div>
+                </div>
+                <div class="bg-white border-[3px] border-[#0D0D0D] rounded-xl p-2.5 shadow-[4px_4px_0_#0D0D0D]">
+                    <div class="font-bangers text-sm text-[#1D4ED8]">MOVES</div>
+                    <div id="win-moves" class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D]">0</div>
+                </div>
+                <div class="bg-white border-[3px] border-[#0D0D0D] rounded-xl p-2.5 shadow-[4px_4px_0_#0D0D0D]">
+                    <div class="font-bangers text-sm text-[#FF0099]">TIME</div>
+                    <div id="win-time" class="font-bangers text-2xl sm:text-3xl text-[#0D0D0D]">00:00</div>
+                </div>
+            </div>
+
+            <button onclick="startNewGame()" class="pop-btn w-full bg-[#00FF66] text-[#0D0D0D] font-bangers text-3xl py-3 rounded-xl tracking-wider">
+                PLAY AGAIN!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * POP! SOLITAIRE - Authentic Classic Klondike Solitaire in Bold Pop Art Style
+         * Enforces strict Classic Klondike Solitaire rules:
+         * - 28-card 7-column tableau deal (1..7 cards, top card face-up), 24-card stock
+         * - Draw 1 (default) or Draw 3 mode with exact waste-to-stock recycle order
+         * - Alternating color & descending rank (-1) tableau stacking; Kings-only on empty columns
+         * - Ascending suit-matched (A -> K) foundations; single top cards only; legal foundation-to-tableau pullback
+         * - Standard Klondike scoring, Undo stack, Hint system, Auto-Complete, Drag-and-Drop & Smart Tap
+         */
+
+        // ==========================================
+        // 2. 5-STYLE POP ART ENGINE (CARDS, PATTERNS & ART SHAPES)
+        // ==========================================
+        let currentArtStyle = 'comic';
+
+        const ART_STYLES = {
+            comic: {
+                id: 'comic',
+                hudBg: '#FFE600',
+                brandBg: '#FF1E42',
+                brandText: '#FFFFFF',
+                calloutColors: ['#FFE600', '#FF1E42', '#00FF66', '#FF0099', '#00D2FF'],
+                calloutWords: ['POW!', 'SNAP!', 'BAM!', 'ZAP!', 'SWEET!', 'POP!']
+            },
+            warhol: {
+                id: 'warhol',
+                hudBg: '#FFEB00',
+                brandBg: '#FF0099',
+                brandText: '#FFFFFF',
+                calloutColors: ['#FF0099', '#00E5FF', '#FFEB00', '#39FF14'],
+                calloutWords: ['POP!', 'ICON!', 'FAME!', 'NEON!', 'PRINT!']
+            },
+            memphis: {
+                id: 'memphis',
+                hudBg: '#A0E7E5',
+                brandBg: '#FF6B9D',
+                brandText: '#FFFFFF',
+                calloutColors: ['#FF6B9D', '#5CE1E6', '#FFE600', '#B5838D'],
+                calloutWords: ['RAD!', 'GROOVY!', 'ZIGZAG!', 'FRESH!', 'COOL!']
+            },
+            street: {
+                id: 'street',
+                hudBg: '#FF5500',
+                brandBg: '#FFE600',
+                brandText: '#0D0D0D',
+                calloutColors: ['#FFE600', '#FF5500', '#00FF66', '#00D2FF'],
+                calloutWords: ['FRESH!', 'TAG!', 'BOMB!', 'DOPE!', 'BOOM!']
+            },
+            manga: {
+                id: 'manga',
+                hudBg: '#FFFFFF',
+                brandBg: '#FF2A6D',
+                brandText: '#FFFFFF',
+                calloutColors: ['#FF2A6D', '#38BDF8', '#FFE600', '#A855F7'],
+                calloutWords: ['SUGOI!', 'DON!', 'SLASH!', 'KAWAII!', 'FLASH!']
+            }
+        };
+
+        function setArtStyle(styleKey) {
+            if (!ART_STYLES[styleKey]) return;
+            currentArtStyle = styleKey;
+            const cfg = ART_STYLES[styleKey];
+
+            document.body.setAttribute('data-style', styleKey);
+
+            // Update Header & Brand Chrome
+            const header = document.getElementById('main-header');
+            const brand = document.getElementById('brand-badge');
+            if (header) header.style.backgroundColor = cfg.hudBg;
+            if (brand) {
+                brand.style.backgroundColor = cfg.brandBg;
+                brand.style.color = cfg.brandText;
+            }
+
+            // Update Active Style Pill State
+            document.querySelectorAll('[data-style-btn]').forEach(btn => {
+                btn.classList.toggle('active-style', btn.getAttribute('data-style-btn') === styleKey);
+            });
+
+            renderBackdropArt();
+            renderBoard();
+            SoundFX.cardFlip();
+        }
+
+        function renderBackdropArt() {
+            const container = document.getElementById('pop-art-backdrop');
+            if (!container) return;
+
+            if (currentArtStyle === 'comic') {
+                container.innerHTML = `
+                <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="benday-cyan" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+                            <circle cx="4" cy="4" r="3.4" fill="#00B8E6" fill-opacity="0.34"/>
+                            <circle cx="11" cy="11" r="3.4" fill="#00B8E6" fill-opacity="0.34"/>
+                        </pattern>
+                        <pattern id="benday-magenta" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(-22)">
+                            <circle cx="4" cy="4" r="3.3" fill="#FF0088" fill-opacity="0.28"/>
+                            <circle cx="10.5" cy="10.5" r="3.3" fill="#FF0088" fill-opacity="0.28"/>
+                        </pattern>
+                        <pattern id="benday-yellow" width="15" height="15" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+                            <circle cx="4.5" cy="4.5" r="3.8" fill="#FFD500" fill-opacity="0.45"/>
+                            <circle cx="12" cy="12" r="3.8" fill="#FFD500" fill-opacity="0.45"/>
+                        </pattern>
+                        <radialGradient id="center-clarity-1" cx="50%" cy="46%" r="58%">
+                            <stop offset="0%" stop-color="#FFFDF5" stop-opacity="0.52"/>
+                            <stop offset="68%" stop-color="#FFFDF5" stop-opacity="0.18"/>
+                            <stop offset="100%" stop-color="#00D2FF" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <g opacity="0.38">
+                        <polygon points="720,160 120,0 320,0" fill="#FFE600"/>
+                        <polygon points="720,160 510,0 650,0" fill="#00D2FF"/>
+                        <polygon points="720,160 790,0 930,0" fill="#FFE600"/>
+                        <polygon points="720,160 1110,0 1320,0" fill="#FF66B2"/>
+                        <polygon points="720,160 1440,140 1440,340" fill="#FFE600"/>
+                        <polygon points="720,160 1440,540 1440,760" fill="#00D2FF"/>
+                        <polygon points="720,160 1160,900 940,900" fill="#FFE600"/>
+                        <polygon points="720,160 520,900 290,900" fill="#FF66B2"/>
+                        <polygon points="720,160 0,720 0,500" fill="#00D2FF"/>
+                        <polygon points="720,160 0,310 0,120" fill="#FFE600"/>
+                    </g>
+                    <circle cx="95" cy="95" r="260" fill="url(#benday-magenta)"/>
+                    <circle cx="70" cy="75" r="150" fill="url(#benday-yellow)"/>
+                    <circle cx="1345" cy="105" r="280" fill="url(#benday-cyan)"/>
+                    <ellipse cx="140" cy="830" rx="340" ry="210" fill="url(#benday-cyan)"/>
+                    <ellipse cx="1300" cy="825" rx="350" ry="220" fill="url(#benday-magenta)"/>
+                    <g stroke="#0D0D0D" stroke-linecap="round" fill="none">
+                        <line x1="365" y1="-20" x2="215" y2="920" stroke-width="5" stroke-opacity="0.22"/>
+                        <line x1="1085" y1="-20" x2="1225" y2="920" stroke-width="5" stroke-opacity="0.22"/>
+                    </g>
+                    <g class="backdrop-float" opacity="0.45">
+                        <polygon points="74,340 84,364 110,366 90,382 96,408 74,394 52,408 58,382 38,366 64,364" fill="#FFE600" stroke="#0D0D0D" stroke-width="3.5"/>
+                        <polygon points="118,480 86,528 108,528 96,574 138,518 114,518" fill="#FF1E42" stroke="#0D0D0D" stroke-width="3.5"/>
+                        <polygon points="1365,330 1375,354 1401,356 1381,372 1387,398 1365,384 1343,398 1349,372 1329,356 1355,354" fill="#00D2FF" stroke="#0D0D0D" stroke-width="3.5"/>
+                    </g>
+                    <path d="M-30,865 Q65,805 165,852 Q275,795 390,855 Q515,800 635,858 Q750,802 870,856 Q995,798 1115,855 Q1235,802 1350,852 Q1415,822 1470,855 L1470,920 L-30,920 Z" fill="#FFE600" stroke="#0D0D0D" stroke-width="4.5"/>
+                    <path d="M-30,888 Q95,842 220,884 Q345,844 470,886 Q600,842 730,886 Q860,844 990,886 Q1120,842 1250,885 Q1360,848 1470,885 L1470,920 L-30,920 Z" fill="#00D2FF" stroke="#0D0D0D" stroke-width="4"/>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#center-clarity-1)"/>
+                </svg>`;
+            } else if (currentArtStyle === 'warhol') {
+                container.innerHTML = `
+                <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="warhol-dots" width="14" height="14" patternUnits="userSpaceOnUse">
+                            <circle cx="4" cy="4" r="3.2" fill="#0D0D0D" fill-opacity="0.16"/>
+                            <circle cx="11" cy="11" r="3.2" fill="#FFFFFF" fill-opacity="0.22"/>
+                        </pattern>
+                        <radialGradient id="center-clarity-2" cx="50%" cy="48%" r="58%">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.65"/>
+                            <stop offset="72%" stop-color="#FFFFFF" stop-opacity="0.24"/>
+                            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- 4-Quadrant Andy Warhol Silkscreen Grid -->
+                    <rect x="0" y="0" width="720" height="450" fill="#FF3B9A" fill-opacity="0.35"/>
+                    <rect x="720" y="0" width="720" height="450" fill="#00E5FF" fill-opacity="0.38"/>
+                    <rect x="0" y="450" width="720" height="450" fill="#FFEB00" fill-opacity="0.45"/>
+                    <rect x="720" y="450" width="720" height="450" fill="#39FF14" fill-opacity="0.32"/>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#warhol-dots)"/>
+                    <!-- Bold Silkscreen Divider Lines & Registration Crosshairs -->
+                    <line x1="720" y1="0" x2="720" y2="900" stroke="#0D0D0D" stroke-width="6" stroke-opacity="0.32"/>
+                    <line x1="0" y1="450" x2="1440" y2="450" stroke="#0D0D0D" stroke-width="6" stroke-opacity="0.32"/>
+                    <g class="backdrop-float" opacity="0.55" stroke="#0D0D0D" stroke-width="3.5">
+                        <!-- Left Warhol Pop Flower -->
+                        <g transform="translate(95, 360)">
+                            <circle cx="0" cy="-26" r="18" fill="#FFEB00"/>
+                            <circle cx="25" cy="-8" r="18" fill="#FFEB00"/>
+                            <circle cx="15" cy="22" r="18" fill="#FFEB00"/>
+                            <circle cx="-15" cy="22" r="18" fill="#FFEB00"/>
+                            <circle cx="-25" cy="-8" r="18" fill="#FFEB00"/>
+                            <circle cx="0" cy="0" r="15" fill="#FF0099"/>
+                        </g>
+                        <!-- Left Pop Soup Can Silhouette -->
+                        <g transform="translate(62, 540)">
+                            <rect x="0" y="0" width="66" height="94" rx="6" fill="#FFFFFF"/>
+                            <rect x="0" y="0" width="66" height="47" fill="#FF1E42"/>
+                            <circle cx="33" cy="47" r="13" fill="#FFEB00"/>
+                            <line x1="12" y1="70" x2="54" y2="70" stroke="#0D0D0D" stroke-width="4"/>
+                        </g>
+                        <!-- Right Warhol Pop Flower -->
+                        <g transform="translate(1345, 360)">
+                            <circle cx="0" cy="-26" r="18" fill="#00E5FF"/>
+                            <circle cx="25" cy="-8" r="18" fill="#00E5FF"/>
+                            <circle cx="15" cy="22" r="18" fill="#00E5FF"/>
+                            <circle cx="-15" cy="22" r="18" fill="#00E5FF"/>
+                            <circle cx="-25" cy="-8" r="18" fill="#00E5FF"/>
+                            <circle cx="0" cy="0" r="15" fill="#FFEB00"/>
+                        </g>
+                        <!-- Registration Targets -->
+                        <circle cx="95" cy="690" r="22" fill="none" stroke-width="4"/>
+                        <line x1="65" y1="690" x2="125" y2="690" stroke-width="3"/>
+                        <line x1="95" y1="660" x2="95" y2="720" stroke-width="3"/>
+                        <circle cx="1345" cy="690" r="22" fill="none" stroke-width="4"/>
+                        <line x1="1315" y1="690" x2="1375" y2="690" stroke-width="3"/>
+                        <line x1="1345" y1="660" x2="1345" y2="720" stroke-width="3"/>
+                    </g>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#center-clarity-2)"/>
+                </svg>`;
+            } else if (currentArtStyle === 'memphis') {
+                container.innerHTML = `
+                <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="memphis-grid" width="44" height="44" patternUnits="userSpaceOnUse">
+                            <path d="M 44 0 L 0 0 0 44" fill="none" stroke="#0D0D0D" stroke-width="1.2" stroke-opacity="0.1"/>
+                        </pattern>
+                        <radialGradient id="center-clarity-3" cx="50%" cy="48%" r="58%">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.62"/>
+                            <stop offset="72%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+                            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#memphis-grid)"/>
+                    <!-- Memphis 80s Floating Geometric Shapes (Triangles, Squiggles, Arches, Concentric Circles) -->
+                    <g class="backdrop-float" opacity="0.65" stroke="#0D0D0D" stroke-width="3.5" stroke-linejoin="round">
+                        <!-- Top-Left Concentric Circles -->
+                        <circle cx="110" cy="190" r="46" fill="#FF6B9D"/>
+                        <circle cx="110" cy="190" r="24" fill="#FFE600"/>
+                        <!-- Left 3D Extruded Triangle -->
+                        <polygon points="75,380 135,355 115,435" fill="#0D0D0D"/>
+                        <polygon points="65,372 125,347 105,427" fill="#5CE1E6"/>
+                        <!-- Left Zigzag Ribbon -->
+                        <polyline points="42,520 72,500 95,530 125,510 145,540" fill="none" stroke="#FF6B9D" stroke-width="9" stroke-linecap="round"/>
+                        <polyline points="42,520 72,500 95,530 125,510 145,540" fill="none" stroke="#0D0D0D" stroke-width="3" stroke-linecap="round"/>
+                        <!-- Top-Right Arch & Pill -->
+                        <path d="M1300,220 A42,42 0 0,1 1384,220 Z" fill="#FFE600"/>
+                        <rect x="1310" y="340" width="76" height="28" rx="14" transform="rotate(-24 1348 354)" fill="#FF6B9D"/>
+                        <!-- Bottom-Right Donut & Triangle -->
+                        <circle cx="1350" cy="540" r="38" fill="#B5838D"/>
+                        <circle cx="1350" cy="540" r="15" fill="#C9F7EB"/>
+                        <polygon points="1310,670 1380,655 1355,730" fill="#FFE600"/>
+                    </g>
+                    <!-- Bottom Memphis Zigzag Wave -->
+                    <polyline points="-20,865 60,835 140,865 220,835 300,865 380,835 460,865 540,835 620,865 700,835 780,865 860,835 940,865 1020,835 1100,865 1180,835 1260,865 1340,835 1460,865"
+                              fill="none" stroke="#FF6B9D" stroke-width="14" stroke-linejoin="round"/>
+                    <polyline points="-20,865 60,835 140,865 220,835 300,865 380,835 460,865 540,835 620,865 700,835 780,865 860,835 940,865 1020,835 1100,865 1180,835 1260,865 1340,835 1460,865"
+                              fill="none" stroke="#0D0D0D" stroke-width="4" stroke-linejoin="round"/>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#center-clarity-3)"/>
+                </svg>`;
+            } else if (currentArtStyle === 'street') {
+                container.innerHTML = `
+                <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="spray-orange" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#FF5500" stop-opacity="0.36"/>
+                            <stop offset="70%" stop-color="#FF5500" stop-opacity="0.1"/>
+                            <stop offset="100%" stop-color="#FF5500" stop-opacity="0"/>
+                        </radialGradient>
+                        <radialGradient id="spray-cyan" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#00D2FF" stop-opacity="0.34"/>
+                            <stop offset="70%" stop-color="#00D2FF" stop-opacity="0.08"/>
+                            <stop offset="100%" stop-color="#00D2FF" stop-opacity="0"/>
+                        </radialGradient>
+                        <radialGradient id="center-clarity-4" cx="50%" cy="48%" r="58%">
+                            <stop offset="0%" stop-color="#FFFDF5" stop-opacity="0.6"/>
+                            <stop offset="72%" stop-color="#FFFDF5" stop-opacity="0.2"/>
+                            <stop offset="100%" stop-color="#FFFDF5" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- Spray Paint Wall Blobs -->
+                    <circle cx="130" cy="220" r="210" fill="url(#spray-orange)"/>
+                    <circle cx="1320" cy="240" r="220" fill="url(#spray-cyan)"/>
+                    <circle cx="150" cy="740" r="220" fill="url(#spray-cyan)"/>
+                    <circle cx="1300" cy="750" r="220" fill="url(#spray-orange)"/>
+                    <!-- Keith Haring / Neo-Pop Radiant Street Icons -->
+                    <g class="backdrop-float" opacity="0.6" stroke="#0D0D0D" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Left 3-Point Street Crown with Motion Rays -->
+                        <g transform="translate(52, 310)">
+                            <polygon points="10,65 10,25 32,45 50,18 68,45 90,25 90,65" fill="#FFE600"/>
+                            <line x1="50" y1="2" x2="50" y2="11"/>
+                            <line x1="18" y1="8" x2="24" y2="16"/>
+                            <line x1="82" y1="8" x2="76" y2="16"/>
+                        </g>
+                        <!-- Left Radiant Heart -->
+                        <g transform="translate(55, 510)">
+                            <path d="M45,75 C45,75 10,52 10,28 C10,16 19,10 29,10 C36,10 42,14 45,20 C48,14 54,10 61,10 C71,10 80,16 80,28 C80,52 45,75 45,75 Z" fill="#FF1E42"/>
+                            <line x1="0" y1="26" x2="-12" y2="22"/>
+                            <line x1="90" y1="26" x2="102" y2="22"/>
+                            <line x1="45" y1="0" x2="45" y2="-12"/>
+                        </g>
+                        <!-- Right Street Lightning & Radiant Star -->
+                        <g transform="translate(1305, 320)">
+                            <polygon points="48,5 18,52 42,52 34,92 72,42 46,42" fill="#FF5500"/>
+                            <line x1="8" y1="30" x2="18" y2="34"/>
+                            <line x1="74" y1="68" x2="86" y2="72"/>
+                        </g>
+                        <g transform="translate(1305, 530)">
+                            <circle cx="45" cy="45" r="28" fill="#00D2FF"/>
+                            <line x1="45" y1="4" x2="45" y2="12"/>
+                            <line x1="45" y1="78" x2="45" y2="86"/>
+                            <line x1="4" y1="45" x2="12" y2="45"/>
+                            <line x1="78" y1="45" x2="86" y2="45"/>
+                        </g>
+                    </g>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#center-clarity-4)"/>
+                </svg>`;
+            } else if (currentArtStyle === 'manga') {
+                container.innerHTML = `
+                <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="center-clarity-5" cx="50%" cy="48%" r="56%">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.72"/>
+                            <stop offset="72%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+                            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- Manga Action Speed Lines Converging Toward Center Arena -->
+                    <g stroke="#1E1B4B" stroke-opacity="0.16" stroke-linecap="round">
+                        <line x1="0" y1="0" x2="360" y2="230" stroke-width="5"/>
+                        <line x1="180" y1="0" x2="440" y2="210" stroke-width="2.5"/>
+                        <line x1="1440" y1="0" x2="1080" y2="230" stroke-width="5"/>
+                        <line x1="1260" y1="0" x2="1000" y2="210" stroke-width="2.5"/>
+                        <line x1="0" y1="900" x2="350" y2="670" stroke-width="5"/>
+                        <line x1="200" y1="900" x2="450" y2="700" stroke-width="2.5"/>
+                        <line x1="1440" y1="900" x2="1090" y2="670" stroke-width="5"/>
+                        <line x1="1240" y1="900" x2="990" y2="700" stroke-width="2.5"/>
+                        <line x1="0" y1="450" x2="260" y2="450" stroke-width="4"/>
+                        <line x1="1440" y1="450" x2="1180" y2="450" stroke-width="4"/>
+                    </g>
+                    <!-- Superflat Smiling Flowers & Sakura Motifs -->
+                    <g class="backdrop-float" opacity="0.65" stroke="#1E1B4B" stroke-width="3">
+                        <!-- Left Superflat Rainbow Flower -->
+                        <g transform="translate(95, 340)">
+                            <circle cx="0" cy="-26" r="15" fill="#FF2A6D"/>
+                            <circle cx="24" cy="-10" r="15" fill="#FFE600"/>
+                            <circle cx="16" cy="21" r="15" fill="#38BDF8"/>
+                            <circle cx="-16" cy="21" r="15" fill="#A855F7"/>
+                            <circle cx="-24" cy="-10" r="15" fill="#34D399"/>
+                            <circle cx="0" cy="0" r="16" fill="#FFE600"/>
+                            <circle cx="-5" cy="-3" r="2.2" fill="#1E1B4B"/>
+                            <circle cx="5" cy="-3" r="2.2" fill="#1E1B4B"/>
+                            <path d="M-6,4 Q0,11 6,4" fill="none" stroke="#1E1B4B" stroke-width="2.2" stroke-linecap="round"/>
+                        </g>
+                        <!-- Right Superflat Smiling Flower -->
+                        <g transform="translate(1345, 360)">
+                            <circle cx="0" cy="-26" r="15" fill="#38BDF8"/>
+                            <circle cx="24" cy="-10" r="15" fill="#FF2A6D"/>
+                            <circle cx="16" cy="21" r="15" fill="#FFE600"/>
+                            <circle cx="-16" cy="21" r="15" fill="#34D399"/>
+                            <circle cx="-24" cy="-10" r="15" fill="#A855F7"/>
+                            <circle cx="0" cy="0" r="16" fill="#FFFFFF"/>
+                            <circle cx="-5" cy="-3" r="2.2" fill="#1E1B4B"/>
+                            <circle cx="5" cy="-3" r="2.2" fill="#1E1B4B"/>
+                            <path d="M-6,4 Q0,11 6,4" fill="none" stroke="#1E1B4B" stroke-width="2.2" stroke-linecap="round"/>
+                        </g>
+                        <!-- Manga Sparkle Stars -->
+                        <polygon points="90,560 97,580 117,587 97,594 90,614 83,594 63,587 83,580" fill="#FF2A6D"/>
+                        <polygon points="1345,560 1352,580 1372,587 1352,594 1345,614 1338,594 1318,587 1338,580" fill="#38BDF8"/>
+                    </g>
+                    <!-- Bottom Great Wave / Seigaiha Stylized Arcs -->
+                    <path d="M-20,875 Q140,815 300,875 Q460,815 620,875 Q780,815 940,875 Q1100,815 1260,875 Q1360,835 1460,875 L1460,920 L-20,920 Z"
+                          fill="#38BDF8" fill-opacity="0.45" stroke="#1E1B4B" stroke-width="3.5"/>
+                    <rect x="0" y="0" width="1440" height="900" fill="url(#center-clarity-5)"/>
+                </svg>`;
+            }
+        }
+
+        const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+        const RANKS = [
+            { val: 1, label: 'A' },
+            { val: 2, label: '2' },
+            { val: 3, label: '3' },
+            { val: 4, label: '4' },
+            { val: 5, label: '5' },
+            { val: 6, label: '6' },
+            { val: 7, label: '7' },
+            { val: 8, label: '8' },
+            { val: 9, label: '9' },
+            { val: 10, label: '10' },
+            { val: 11, label: 'J' },
+            { val: 12, label: 'Q' },
+            { val: 13, label: 'K' }
+        ];
+
+        function getSuitSVG(suit, extraClass = 'w-full h-full') {
+            // Style-adaptive suit palettes & geometric touches
+            const palette = {
+                comic:   { red: '#FF1E42', black: '#0D0D0D', hiRed: '#FFFFFF', hiBlack: '#00D2FF' },
+                warhol:  { red: '#FF0099', black: '#1D4ED8', hiRed: '#FFEB00', hiBlack: '#00E5FF' },
+                memphis: { red: '#FF5C8A', black: '#1F2937', hiRed: '#FFE600', hiBlack: '#5CE1E6' },
+                street:  { red: '#FF3B00', black: '#0D0D0D', hiRed: '#FFE600', hiBlack: '#FF5500' },
+                manga:   { red: '#FF2A6D', black: '#1E1B4B', hiRed: '#FBCFE8', hiBlack: '#38BDF8' }
+            }[currentArtStyle] || { red: '#FF1E42', black: '#0D0D0D', hiRed: '#FFFFFF', hiBlack: '#00D2FF' };
+
+            switch (suit) {
+                case 'spades':
+                    return `<svg class="${extraClass}" viewBox="0 0 64 64">
+                        <path d="M32 6 C14 24 8 34 8 42 C8 49 14 53 20 53 C24 53 27 51 29 48 L25 58 L39 58 L35 48 C37 51 40 53 44 53 C50 53 56 49 56 42 C56 34 50 24 32 6 Z" fill="${palette.black}" stroke="#0D0D0D" stroke-width="3" stroke-linejoin="round"/>
+                        <path d="M23 30 C19 34 17 38 18 42" stroke="${palette.hiBlack}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                    </svg>`;
+                case 'hearts':
+                    return `<svg class="${extraClass}" viewBox="0 0 64 64">
+                        <path d="M32 56 C32 56 8 40 8 22 C8 13 15 8 22 8 C27 8 30 11 32 15 C34 11 37 8 42 8 C49 8 56 13 56 22 C56 40 32 56 32 56 Z" fill="${palette.red}" stroke="#0D0D0D" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M16 19 C16 15 19 13 22 13" stroke="${palette.hiRed}" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                    </svg>`;
+                case 'clubs':
+                    return `<svg class="${extraClass}" viewBox="0 0 64 64">
+                        <path d="M32 8 C25 8 20 13 20 20 C20 23 21 26 23 28 C16 27 10 32 10 39 C10 46 16 51 22 51 C25 51 28 49 29 47 L25 58 L39 58 L35 47 C36 49 39 51 42 51 C48 51 54 46 54 39 C54 32 48 27 41 28 C43 26 44 23 44 20 C44 13 39 8 32 8 Z" fill="${palette.black}" stroke="#0D0D0D" stroke-width="3" stroke-linejoin="round"/>
+                        <circle cx="29" cy="17" r="2.8" fill="${palette.hiBlack}"/>
+                    </svg>`;
+                case 'diamonds':
+                    return `<svg class="${extraClass}" viewBox="0 0 64 64">
+                        <polygon points="32,6 54,32 32,58 10,32" fill="${palette.red}" stroke="#0D0D0D" stroke-width="4" stroke-linejoin="round"/>
+                        <polygon points="32,14 44,32 32,50 20,32" fill="${palette.hiRed}" opacity="0.5"/>
+                    </svg>`;
+            }
+        }
+
+        // Stylized Court Card Emblems (J, Q, K) tailored to each of the 5 Artistic Styles
+        function getFaceCardCenterSVG(rankLabel, suit) {
+            const isRed = suit === 'hearts' || suit === 'diamonds';
+
+            // Style 2: Andy Warhol Neon Silkscreen Court Art
+            if (currentArtStyle === 'warhol') {
+                const c1 = isRed ? '#FF0099' : '#00E5FF';
+                const c2 = isRed ? '#FFEB00' : '#39FF14';
+                const labelWord = rankLabel === 'K' ? 'KING' : (rankLabel === 'Q' ? 'QUEEN' : 'JACK');
+                return `<svg class="w-[76%] h-[64%]" viewBox="0 0 100 110">
+                    <rect x="6" y="6" width="44" height="44" fill="${c1}" stroke="#0D0D0D" stroke-width="3.5"/>
+                    <rect x="50" y="6" width="44" height="44" fill="${c2}" stroke="#0D0D0D" stroke-width="3.5"/>
+                    <rect x="6" y="50" width="44" height="44" fill="${c2}" stroke="#0D0D0D" stroke-width="3.5"/>
+                    <rect x="50" y="50" width="44" height="44" fill="${c1}" stroke="#0D0D0D" stroke-width="3.5"/>
+                    <circle cx="50" cy="46" r="24" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="4"/>
+                    <text x="50" y="55" text-anchor="middle" font-family="Bangers, sans-serif" font-size="30" fill="#0D0D0D">${rankLabel}</text>
+                    <rect x="14" y="84" width="72" height="18" fill="#0D0D0D"/>
+                    <text x="50" y="98" text-anchor="middle" font-family="Bangers, sans-serif" font-size="15" fill="#FFEB00" letter-spacing="1.5">${labelWord}</text>
+                </svg>`;
+            }
+
+            // Style 3: Memphis 80s Geometric Pop Court Art
+            if (currentArtStyle === 'memphis') {
+                const main = isRed ? '#FF6B9D' : '#5CE1E6';
+                const sub = isRed ? '#FFE600' : '#B5838D';
+                const labelWord = rankLabel === 'K' ? 'KING' : (rankLabel === 'Q' ? 'QUEEN' : 'JACK');
+                return `<svg class="w-[76%] h-[64%]" viewBox="0 0 100 110">
+                    <rect x="10" y="10" width="80" height="90" rx="16" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="4"/>
+                    <polygon points="50,16 82,70 18,70" fill="${main}" stroke="#0D0D0D" stroke-width="4" stroke-linejoin="round"/>
+                    <circle cx="50" cy="48" r="15" fill="${sub}" stroke="#0D0D0D" stroke-width="3.5"/>
+                    <polyline points="22,78 36,70 50,78 64,70 78,78" fill="none" stroke="#0D0D0D" stroke-width="3.5" stroke-linecap="round"/>
+                    <text x="50" y="95" text-anchor="middle" font-family="Bangers, sans-serif" font-size="18" fill="#0D0D0D" letter-spacing="1">${labelWord}</text>
+                </svg>`;
+            }
+
+            // Style 4: Neo-Pop Street Graffiti Court Art
+            if (currentArtStyle === 'street') {
+                const bg = isRed ? '#FF5500' : '#FFE600';
+                const fg = isRed ? '#FFE600' : '#00D2FF';
+                const labelWord = rankLabel === 'K' ? 'KING' : (rankLabel === 'Q' ? 'QUEEN' : 'JACK');
+                return `<svg class="w-[76%] h-[64%]" viewBox="0 0 100 110">
+                    <rect x="8" y="8" width="84" height="94" rx="6" fill="${bg}" stroke="#0D0D0D" stroke-width="5"/>
+                    <polygon points="22,62 22,30 38,46 50,22 62,46 78,30 78,62" fill="${fg}" stroke="#0D0D0D" stroke-width="4.5" stroke-linejoin="round"/>
+                    <line x1="50" y1="10" x2="50" y2="17" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="22" y1="15" x2="27" y2="21" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="78" y1="15" x2="73" y2="21" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
+                    <rect x="16" y="70" width="68" height="22" fill="#0D0D0D"/>
+                    <text x="50" y="87" text-anchor="middle" font-family="Bangers, sans-serif" font-size="19" fill="#FFFFFF" letter-spacing="1.5">${labelWord}</text>
+                </svg>`;
+            }
+
+            // Style 5: Retro Japanese Manga & Superflat Court Art
+            if (currentArtStyle === 'manga') {
+                const aura = isRed ? '#FF2A6D' : '#38BDF8';
+                const core = isRed ? '#FFE600' : '#A855F7';
+                const labelWord = rankLabel === 'K' ? 'KING' : (rankLabel === 'Q' ? 'QUEEN' : 'JACK');
+                return `<svg class="w-[76%] h-[64%]" viewBox="0 0 100 110">
+                    <polygon points="50,6 63,28 90,22 76,48 94,70 66,72 50,98 34,72 6,70 24,48 10,22 37,28" fill="${aura}" stroke="#1E1B4B" stroke-width="4" stroke-linejoin="round"/>
+                    <circle cx="50" cy="50" r="22" fill="${core}" stroke="#1E1B4B" stroke-width="3.5"/>
+                    <circle cx="43" cy="46" r="2.5" fill="#1E1B4B"/>
+                    <circle cx="57" cy="46" r="2.5" fill="#1E1B4B"/>
+                    <path d="M43,54 Q50,62 57,54" fill="none" stroke="#1E1B4B" stroke-width="2.5" stroke-linecap="round"/>
+                    <rect x="18" y="84" width="64" height="18" rx="3" fill="#1E1B4B"/>
+                    <text x="50" y="98" text-anchor="middle" font-family="Bangers, sans-serif" font-size="16" fill="#FFFFFF" letter-spacing="1.5">${labelWord}</text>
+                </svg>`;
+            }
+
+            // Style 1 (Default): Lichtenstein Comic Pop Art Court Art
+            const primary = isRed ? '#FF1E42' : '#1D4ED8';
+            const secondary = isRed ? '#FFE600' : '#00D2FF';
+            const accent = isRed ? '#FF0099' : '#FFE600';
+
+            if (rankLabel === 'K') {
+                return `<svg class="w-[74%] h-[62%]" viewBox="0 0 100 110">
+                    <rect x="8" y="8" width="84" height="94" rx="10" fill="${secondary}" stroke="#0D0D0D" stroke-width="5"/>
+                    <polygon points="18,65 18,32 36,48 50,24 64,48 82,32 82,65" fill="${primary}" stroke="#0D0D0D" stroke-width="4.5" stroke-linejoin="round"/>
+                    <circle cx="18" cy="28" r="5" fill="${accent}" stroke="#0D0D0D" stroke-width="3"/>
+                    <circle cx="50" cy="20" r="6" fill="${accent}" stroke="#0D0D0D" stroke-width="3"/>
+                    <circle cx="82" cy="28" r="5" fill="${accent}" stroke="#0D0D0D" stroke-width="3"/>
+                    <rect x="18" y="65" width="64" height="14" rx="3" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="4"/>
+                    <text x="50" y="96" text-anchor="middle" font-family="Bangers, sans-serif" font-size="22" fill="#0D0D0D">KING</text>
+                </svg>`;
+            } else if (rankLabel === 'Q') {
+                return `<svg class="w-[74%] h-[62%]" viewBox="0 0 100 110">
+                    <rect x="8" y="8" width="84" height="94" rx="10" fill="${accent}" stroke="#0D0D0D" stroke-width="5"/>
+                    <circle cx="50" cy="48" r="26" fill="${secondary}" stroke="#0D0D0D" stroke-width="4.5"/>
+                    <polygon points="50,24 57,41 75,41 61,52 66,69 50,59 34,69 39,52 25,41 43,41" fill="${primary}" stroke="#0D0D0D" stroke-width="3.5" stroke-linejoin="round"/>
+                    <text x="50" y="96" text-anchor="middle" font-family="Bangers, sans-serif" font-size="22" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="1.2">QUEEN</text>
+                </svg>`;
+            } else {
+                return `<svg class="w-[74%] h-[62%]" viewBox="0 0 100 110">
+                    <rect x="8" y="8" width="84" height="94" rx="10" fill="${primary}" stroke="#0D0D0D" stroke-width="5"/>
+                    <polygon points="55,18 28,56 48,56 42,84 72,44 52,44" fill="${secondary}" stroke="#0D0D0D" stroke-width="4" stroke-linejoin="round"/>
+                    <text x="50" y="97" text-anchor="middle" font-family="Bangers, sans-serif" font-size="21" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="1.2">JACK</text>
+                </svg>`;
+            }
+        }
+
+        function getCardBackInnerSVG() {
+            if (currentArtStyle === 'warhol') {
+                return `<svg class="w-4/5 h-4/5" viewBox="0 0 60 60">
+                    <circle cx="30" cy="14" r="10" fill="#FF0099" stroke="#0D0D0D" stroke-width="2.5"/>
+                    <circle cx="45" cy="25" r="10" fill="#00E5FF" stroke="#0D0D0D" stroke-width="2.5"/>
+                    <circle cx="39" cy="43" r="10" fill="#39FF14" stroke="#0D0D0D" stroke-width="2.5"/>
+                    <circle cx="21" cy="43" r="10" fill="#FF0099" stroke="#0D0D0D" stroke-width="2.5"/>
+                    <circle cx="15" cy="25" r="10" fill="#00E5FF" stroke="#0D0D0D" stroke-width="2.5"/>
+                    <circle cx="30" cy="30" r="9" fill="#FFFFFF" stroke="#0D0D0D" stroke-width="3"/>
+                </svg>`;
+            }
+            if (currentArtStyle === 'memphis') {
+                return `<svg class="w-4/5 h-4/5" viewBox="0 0 60 60">
+                    <polygon points="30,8 52,46 8,46" fill="#FF6B9D" stroke="#0D0D0D" stroke-width="3" stroke-linejoin="round"/>
+                    <circle cx="30" cy="32" r="10" fill="#FFE600" stroke="#0D0D0D" stroke-width="2.5"/>
+                    <polyline points="12,52 21,46 30,52 39,46 48,52" fill="none" stroke="#0D0D0D" stroke-width="3" stroke-linecap="round"/>
+                </svg>`;
+            }
+            if (currentArtStyle === 'street') {
+                return `<svg class="w-4/5 h-4/5" viewBox="0 0 60 60">
+                    <polygon points="10,44 10,20 23,32 30,14 37,32 50,20 50,44" fill="#FFE600" stroke="#0D0D0D" stroke-width="3.5" stroke-linejoin="round"/>
+                    <line x1="30" y1="4" x2="30" y2="9" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="14" y1="8" x2="18" y2="12" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="46" y1="8" x2="42" y2="12" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+                </svg>`;
+            }
+            if (currentArtStyle === 'manga') {
+                return `<svg class="w-4/5 h-4/5" viewBox="0 0 60 60">
+                    <circle cx="30" cy="24" r="14" fill="#FF2A6D" stroke="#1E1B4B" stroke-width="2.5"/>
+                    <polygon points="8,50 30,22 52,50" fill="#38BDF8" stroke="#1E1B4B" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="22,32 30,22 38,32 34,35 30,31 26,35" fill="#FFFFFF"/>
+                </svg>`;
+            }
+            // Comic default
+            return `<svg class="w-3/4 h-3/4" viewBox="0 0 60 60">
+                <polygon points="30,3 37,20 56,20 41,32 46,50 30,39 14,50 19,32 4,20 23,20" fill="#FFE600" stroke="#0D0D0D" stroke-width="3.5" stroke-linejoin="round"/>
+            </svg>`;
+        }
+
+        // ==========================================
+        // 3. GAME STATE & HISTORY
+        // ==========================================
+        let drawCount = 1; // 1 = Draw 1 (Classic default), 3 = Draw 3
+
+        let gameState = {
+            stock: [],
+            waste: [],
+            foundations: [[], [], [], []], // 4 Foundation piles (any Ace can start any empty pile)
+            tableau: [[], [], [], [], [], [], []],
+            score: 0,
+            moves: 0,
+            seconds: 0,
+            timerInterval: null,
+            gameStarted: false,
+            gameWon: false
+        };
+
+        let undoStack = [];
+        let hintedCardIds = new Set();
+
+        // ==========================================
+        // 4. WEB AUDIO SYNTHESIZER, DEALING, SCORING & UNDO
+        // ==========================================
+        const SoundFX = (() => {
+            let ctx = null;
+            let muted = false;
+
+            function getCtx() {
+                if (!ctx && (window.AudioContext || window.webkitAudioContext)) {
+                    ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (ctx && ctx.state === 'suspended') {
+                    ctx.resume().catch(() => {});
+                }
+                return ctx;
+            }
+
+            function playTone(freq, type, duration, gainVal = 0.08, slideTo = null) {
+                if (muted) return;
+                const audioCtx = getCtx();
+                if (!audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    if (slideTo) {
+                        osc.frequency.exponentialRampToValueAtTime(slideTo, audioCtx.currentTime + duration);
+                    }
+                    gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + duration);
+                } catch (_) {}
+            }
+
+            return {
+                isMuted: () => muted,
+                toggleMute: () => {
+                    muted = !muted;
+                    return muted;
+                },
+                cardFlip: () => playTone(460, 'triangle', 0.07, 0.06, 680),
+                cardPlace: () => playTone(260, 'sine', 0.09, 0.08, 170),
+                foundation: () => {
+                    playTone(523.25, 'triangle', 0.11, 0.09, 783.99);
+                    setTimeout(() => playTone(783.99, 'triangle', 0.14, 0.08, 1046.5), 55);
+                },
+                hint: () => playTone(660, 'sine', 0.14, 0.07, 880),
+                error: () => playTone(165, 'sawtooth', 0.12, 0.05, 115),
+                win: () => {
+                    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+                    notes.forEach((n, idx) => {
+                        setTimeout(() => playTone(n, 'triangle', 0.22, 0.09), idx * 95);
+                    });
+                }
+            };
+        })();
+
+        function toggleSound() {
+            const isMuted = SoundFX.toggleMute();
+            const icon = document.getElementById('sound-icon');
+            if (icon) icon.textContent = isMuted ? '🔇' : '🔊';
+        }
+
+        function toggleDrawMode() {
+            drawCount = drawCount === 1 ? 3 : 1;
+            const btn = document.getElementById('btn-draw-mode');
+            if (btn) btn.textContent = `DRAW ${drawCount}`;
+            startNewGame();
+        }
+
+        function addScore(delta) {
+            gameState.score = Math.max(0, gameState.score + delta);
+        }
+
+        function ensureTimerRunning() {
+            if (gameState.gameStarted || gameState.gameWon) return;
+            gameState.gameStarted = true;
+            gameState.timerInterval = setInterval(() => {
+                if (!gameState.gameWon) {
+                    gameState.seconds++;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function saveSnapshot() {
+            const cloneCards = (arr) => arr.map(c => ({ ...c }));
+            undoStack.push({
+                stock: cloneCards(gameState.stock),
+                waste: cloneCards(gameState.waste),
+                foundations: gameState.foundations.map(cloneCards),
+                tableau: gameState.tableau.map(cloneCards),
+                score: gameState.score,
+                moves: gameState.moves
+            });
+            if (undoStack.length > 60) {
+                undoStack.shift();
+            }
+        }
+
+        function undoMove() {
+            if (undoStack.length === 0 || gameState.gameWon) return;
+            const prev = undoStack.pop();
+            gameState.stock = prev.stock;
+            gameState.waste = prev.waste;
+            gameState.foundations = prev.foundations;
+            gameState.tableau = prev.tableau;
+            gameState.score = prev.score;
+            gameState.moves = prev.moves;
+            hintedCardIds.clear();
+            SoundFX.cardFlip();
+            updateHUD();
+            renderBoard();
+            checkAutoCompleteAvailability();
+        }
+
+        function createShuffledDeck() {
+            const deck = [];
+            for (const suit of SUITS) {
+                const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+                for (const r of RANKS) {
+                    deck.push({
+                        id: `${r.label}-${suit}`,
+                        suit,
+                        color,
+                        value: r.val,
+                        label: r.label,
+                        faceUp: false
+                    });
+                }
+            }
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        function startNewGame() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+
+            const deck = createShuffledDeck();
+            const tableau = [[], [], [], [], [], [], []];
+
+            // Classic Klondike 28-card deal: col i gets (i + 1) cards, top card face-up
+            for (let col = 0; col < 7; col++) {
+                for (let row = 0; row <= col; row++) {
+                    const card = deck.pop();
+                    card.faceUp = (row === col);
+                    tableau[col].push(card);
+                }
+            }
+
+            gameState = {
+                stock: deck, // Remaining 24 cards face-down
+                waste: [],
+                foundations: [[], [], [], []],
+                tableau,
+                score: 0,
+                moves: 0,
+                seconds: 0,
+                timerInterval: null,
+                gameStarted: false,
+                gameWon: false
+            };
+
+            undoStack = [];
+            hintedCardIds.clear();
+
+            const winOverlay = document.getElementById('victory-overlay');
+            if (winOverlay) winOverlay.classList.add('hidden');
+            const autoBtn = document.getElementById('btn-autocomplete');
+            if (autoBtn) autoBtn.classList.add('hidden');
+
+            updateHUD();
+            renderBoard();
+        }
+
+        // ==========================================
+        // 5. POP ART ACTION CALLOUTS (STYLE-ADAPTIVE)
+        // ==========================================
+        function spawnCallout(text, x, y, forcedColor = null) {
+            const cfg = ART_STYLES[currentArtStyle] || ART_STYLES.comic;
+            const word = text || cfg.calloutWords[Math.floor(Math.random() * cfg.calloutWords.length)];
+            const bgColor = forcedColor || cfg.calloutColors[Math.floor(Math.random() * cfg.calloutColors.length)];
+            const textColor = (bgColor === '#FF1E42' || bgColor === '#FF0099' || bgColor === '#FF2A6D' || bgColor === '#A855F7') ? '#FFFFFF' : '#0D0D0D';
+
+            // Clamp coordinates so callouts stay inside viewport
+            const safeX = Math.max(85, Math.min(window.innerWidth - 85, x));
+            const safeY = Math.max(85, Math.min(window.innerHeight - 85, y));
+
+            const el = document.createElement('div');
+            el.className = 'comic-callout';
+            el.style.left = `${safeX}px`;
+            el.style.top = `${safeY}px`;
+
+            let shapeSVG = '';
+            if (currentArtStyle === 'warhol') {
+                shapeSVG = `<rect x="12" y="22" width="136" height="76" fill="${bgColor}" stroke="#0D0D0D" stroke-width="5"/>
+                            <rect x="20" y="30" width="120" height="60" fill="none" stroke="#0D0D0D" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+            } else if (currentArtStyle === 'memphis') {
+                shapeSVG = `<rect x="14" y="24" width="132" height="72" rx="36" transform="rotate(-6 80 60)" fill="${bgColor}" stroke="#0D0D0D" stroke-width="5"/>`;
+            } else if (currentArtStyle === 'street') {
+                shapeSVG = `<polygon points="14,32 82,16 148,28 140,94 74,104 10,88" fill="${bgColor}" stroke="#0D0D0D" stroke-width="5" stroke-linejoin="round"/>`;
+            } else if (currentArtStyle === 'manga') {
+                shapeSVG = `<polygon points="80,2 96,28 134,8 122,42 158,56 122,74 140,108 98,92 80,118 62,92 20,108 38,74 2,56 38,42 26,8 64,28" fill="${bgColor}" stroke="#1E1B4B" stroke-width="5" stroke-linejoin="round"/>`;
+            } else {
+                shapeSVG = `<polygon points="80,4 100,26 138,14 128,46 156,64 124,80 134,110 98,96 80,116 62,96 26,110 36,80 4,64 32,46 22,14 60,26" fill="${bgColor}" stroke="#0D0D0D" stroke-width="5" stroke-linejoin="round"/>`;
+            }
+
+            el.innerHTML = `
+                <svg viewBox="0 0 160 120" class="w-full h-full drop-shadow-[4px_4px_0_#0D0D0D]">
+                    ${shapeSVG}
+                    <text x="80" y="70" text-anchor="middle" font-family="Bangers, sans-serif" font-size="33" letter-spacing="1.5"
+                          fill="${textColor}" stroke="#0D0D0D" stroke-width="${textColor === '#FFFFFF' ? '2' : '0'}">${word}</text>
+                </svg>
+            `;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 860);
+        }
+
+        // ==========================================
+        // 6. CLASSIC KLONDIKE RULES & VALIDATION
+        // ==========================================
+
+        /**
+         * Classic Klondike Foundation Rule:
+         * - Empty foundation pile accepts ONLY an Ace (value === 1) of ANY suit.
+         * - Non-empty foundation pile accepts ONLY the next ascending rank (+1)
+         *   of the EXACT SAME SUIT as the top card on that foundation pile.
+         */
+        function canMoveToFoundation(card, foundationIndex) {
+            const pile = gameState.foundations[foundationIndex];
+            if (pile.length === 0) {
+                return card.value === 1; // Any Ace starts an empty foundation
+            }
+            const topCard = pile[pile.length - 1];
+            return (card.suit === topCard.suit) && (card.value === topCard.value + 1);
+        }
+
+        /**
+         * Finds the best valid foundation index for a single card, or -1 if none exists.
+         * Prefers matching an existing suit pile first, then the first empty foundation slot for an Ace.
+         */
+        function findValidFoundationIndex(card) {
+            if (card.value === 1) {
+                return gameState.foundations.findIndex(pile => pile.length === 0);
+            }
+            return gameState.foundations.findIndex(pile => {
+                if (pile.length === 0) return false;
+                const top = pile[pile.length - 1];
+                return top.suit === card.suit && card.value === top.value + 1;
+            });
+        }
+
+        /**
+         * Classic Klondike Tableau Rule:
+         * - Empty tableau column accepts ONLY a King (value === 13) (or King-led face-up stack).
+         * - Non-empty tableau column accepts ONLY a card whose color is OPPOSITE to the
+         *   column's bottom-most face-up card AND whose rank is EXACTLY 1 LESS (target.value - 1).
+         */
+        function canMoveToTableau(card, colIndex) {
+            const col = gameState.tableau[colIndex];
+            if (col.length === 0) {
+                return card.value === 13; // Strictly Kings only on empty columns
+            }
+            const topCard = col[col.length - 1];
+            if (!topCard.faceUp) return false;
+            return (card.color !== topCard.color) && (card.value === topCard.value - 1);
+        }
+
+        /**
+         * Validates that a sub-stack of cards in a Tableau column is a legal face-up descending
+         * alternating-color sequence before allowing it to be moved.
+         */
+        function isValidTableauSubStack(cards) {
+            if (cards.length === 0) return false;
+            if (!cards[0].faceUp) return false;
+            for (let i = 1; i < cards.length; i++) {
+                if (!cards[i].faceUp) return false;
+                if (cards[i].color === cards[i - 1].color) return false;
+                if (cards[i].value !== cards[i - 1].value - 1) return false;
+            }
+            return true;
+        }
+
+        function handleStockClick() {
+            if (gameState.gameWon) return;
+            ensureTimerRunning();
+            hintedCardIds.clear();
+
+            if (gameState.stock.length > 0) {
+                saveSnapshot();
+                const toDraw = Math.min(drawCount, gameState.stock.length);
+                for (let i = 0; i < toDraw; i++) {
+                    const card = gameState.stock.pop();
+                    card.faceUp = true;
+                    gameState.waste.push(card);
+                }
+                gameState.moves++;
+                SoundFX.cardFlip();
+            } else if (gameState.waste.length > 0) {
+                saveSnapshot();
+                // Recycle entire waste pile back into face-down stock preserving exact draw order
+                while (gameState.waste.length > 0) {
+                    const card = gameState.waste.pop();
+                    card.faceUp = false;
+                    gameState.stock.push(card);
+                }
+                // Standard Klondike waste recycle penalty (-100 pts, min 0)
+                addScore(-100);
+                gameState.moves++;
+                SoundFX.cardFlip();
+            }
+            updateHUD();
+            renderBoard();
+        }
+
+        function executeMove(sourceInfo, targetInfo, eventCoords = null) {
+            // sourceInfo: { type: 'waste'|'tableau'|'foundation', colIndex, cardIndex }
+            // targetInfo: { type: 'foundation'|'tableau', index }
+            let movingCards = [];
+
+            if (sourceInfo.type === 'waste') {
+                if (gameState.waste.length === 0) return false;
+                // Strictly only the TOP card of the Waste pile can be played
+                if (sourceInfo.cardIndex !== undefined && sourceInfo.cardIndex !== gameState.waste.length - 1) {
+                    return false;
+                }
+                movingCards = [gameState.waste[gameState.waste.length - 1]];
+            } else if (sourceInfo.type === 'foundation') {
+                const pile = gameState.foundations[sourceInfo.colIndex];
+                if (pile.length === 0) return false;
+                movingCards = [pile[pile.length - 1]];
+            } else if (sourceInfo.type === 'tableau') {
+                const col = gameState.tableau[sourceInfo.colIndex];
+                movingCards = col.slice(sourceInfo.cardIndex);
+                if (!isValidTableauSubStack(movingCards)) return false;
+            }
+
+            if (movingCards.length === 0) return false;
+            const leadCard = movingCards[0];
+
+            // Validate target
+            if (targetInfo.type === 'foundation') {
+                if (movingCards.length !== 1) return false; // Only a single top card can move to a Foundation
+                if (sourceInfo.type === 'foundation' && sourceInfo.colIndex === targetInfo.index) return false;
+                if (!canMoveToFoundation(leadCard, targetInfo.index)) return false;
+            } else if (targetInfo.type === 'tableau') {
+                if (sourceInfo.type === 'tableau' && sourceInfo.colIndex === targetInfo.index) return false;
+                if (!canMoveToTableau(leadCard, targetInfo.index)) return false;
+            } else {
+                return false;
+            }
+
+            // Valid move! Record snapshot & execute
+            ensureTimerRunning();
+            saveSnapshot();
+            hintedCardIds.clear();
+
+            // Remove from source
+            if (sourceInfo.type === 'waste') {
+                gameState.waste.pop();
+            } else if (sourceInfo.type === 'foundation') {
+                gameState.foundations[sourceInfo.colIndex].pop();
+            } else if (sourceInfo.type === 'tableau') {
+                gameState.tableau[sourceInfo.colIndex].splice(sourceInfo.cardIndex);
+            }
+
+            // Add to target & apply Classic Klondike Scoring
+            let revealedNewCard = false;
+            if (targetInfo.type === 'foundation') {
+                gameState.foundations[targetInfo.index].push(leadCard);
+                if (sourceInfo.type === 'waste' || sourceInfo.type === 'tableau') {
+                    addScore(10); // Waste/Tableau -> Foundation: +10
+                }
+                SoundFX.foundation();
+            } else {
+                gameState.tableau[targetInfo.index].push(...movingCards);
+                if (sourceInfo.type === 'waste') {
+                    addScore(5); // Waste -> Tableau: +5
+                } else if (sourceInfo.type === 'foundation') {
+                    addScore(-15); // Foundation -> Tableau pullback: -15
+                }
+                SoundFX.cardPlace();
+            }
+
+            // Flip newly exposed face-down tableau card if needed (+5 points)
+            if (sourceInfo.type === 'tableau') {
+                const srcCol = gameState.tableau[sourceInfo.colIndex];
+                if (srcCol.length > 0 && !srcCol[srcCol.length - 1].faceUp) {
+                    srcCol[srcCol.length - 1].faceUp = true;
+                    revealedNewCard = true;
+                    addScore(5);
+                }
+            }
+
+            gameState.moves++;
+
+            // Trigger Pop Art visual burst on exciting moves
+            const cx = eventCoords ? eventCoords.x : window.innerWidth / 2;
+            const cy = eventCoords ? eventCoords.y : window.innerHeight / 2;
+            if (targetInfo.type === 'foundation') {
+                const label = leadCard.value === 1 ? 'ACE!' : (leadCard.value === 13 ? 'KING!' : 'POW!');
+                spawnCallout(label, cx, cy, '#FFE600');
+            } else if (revealedNewCard) {
+                spawnCallout('FLIP!', cx, cy, '#00FF66');
+            } else if (leadCard.value === 13 && targetInfo.type === 'tableau') {
+                spawnCallout('KING!', cx, cy, '#00D2FF');
+            }
+
+            updateHUD();
+            renderBoard();
+            checkAutoCompleteAvailability();
+            checkWinCondition();
+            return true;
+        }
+
+        /**
+         * Smart Tap / Click Auto-Move:
+         * Automatically finds the best legal move for a clicked card/stack:
+         * 1. If it's a single top card, tries a valid Foundation pile first.
+         * 2. Otherwise tries valid Tableau columns (preferring non-empty columns first so Kings
+         *    don't needlessly hop between empty columns, unless moving off a face-down card).
+         */
+        function smartAutoMove(sourceInfo, coords) {
+            let movingCards = [];
+            if (sourceInfo.type === 'waste') {
+                if (gameState.waste.length === 0) return false;
+                movingCards = [gameState.waste[gameState.waste.length - 1]];
+            } else if (sourceInfo.type === 'tableau') {
+                const col = gameState.tableau[sourceInfo.colIndex];
+                movingCards = col.slice(sourceInfo.cardIndex);
+                if (!isValidTableauSubStack(movingCards)) return false;
+            } else if (sourceInfo.type === 'foundation') {
+                const pile = gameState.foundations[sourceInfo.colIndex];
+                if (pile.length === 0) return false;
+                movingCards = [pile[pile.length - 1]];
+            }
+
+            if (movingCards.length === 0) return false;
+            const leadCard = movingCards[0];
+
+            // 1. Try Foundation (only for single cards not already on foundation)
+            if (movingCards.length === 1 && sourceInfo.type !== 'foundation') {
+                const fIdx = findValidFoundationIndex(leadCard);
+                if (fIdx !== -1) {
+                    return executeMove(sourceInfo, { type: 'foundation', index: fIdx }, coords);
+                }
+            }
+
+            // 2. Try Tableau columns (prefer non-empty target columns first)
+            const nonEmptyCols = [];
+            const emptyCols = [];
+            for (let c = 0; c < 7; c++) {
+                if (sourceInfo.type === 'tableau' && sourceInfo.colIndex === c) continue;
+                if (canMoveToTableau(leadCard, c)) {
+                    if (gameState.tableau[c].length > 0) {
+                        nonEmptyCols.push(c);
+                    } else {
+                        emptyCols.push(c);
+                    }
+                }
+            }
+
+            if (nonEmptyCols.length > 0) {
+                return executeMove(sourceInfo, { type: 'tableau', index: nonEmptyCols[0] }, coords);
+            }
+
+            // Only auto-move a King to an empty column if it frees a face-down card or comes from Waste/Foundation
+            if (emptyCols.length > 0) {
+                const freesFaceDown = sourceInfo.type === 'tableau' &&
+                    sourceInfo.cardIndex > 0 &&
+                    !gameState.tableau[sourceInfo.colIndex][sourceInfo.cardIndex - 1].faceUp;
+                if (sourceInfo.type !== 'tableau' || freesFaceDown) {
+                    return executeMove(sourceInfo, { type: 'tableau', index: emptyCols[0] }, coords);
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * Hint System: Highlights the highest-value legal move available on the board
+         */
+        function showHint() {
+            if (gameState.gameWon) return;
+            hintedCardIds.clear();
+
+            // 1. Check Waste top card -> Foundation or Tableau
+            if (gameState.waste.length > 0) {
+                const wCard = gameState.waste[gameState.waste.length - 1];
+                if (findValidFoundationIndex(wCard) !== -1) {
+                    hintedCardIds.add(wCard.id);
+                    SoundFX.hint();
+                    renderBoard();
+                    return;
+                }
+                for (let c = 0; c < 7; c++) {
+                    if (canMoveToTableau(wCard, c)) {
+                        hintedCardIds.add(wCard.id);
+                        SoundFX.hint();
+                        renderBoard();
+                        return;
+                    }
+                }
+            }
+
+            // 2. Check Tableau top cards -> Foundation
+            for (let c = 0; c < 7; c++) {
+                const col = gameState.tableau[c];
+                if (col.length > 0) {
+                    const topCard = col[col.length - 1];
+                    if (findValidFoundationIndex(topCard) !== -1) {
+                        hintedCardIds.add(topCard.id);
+                        SoundFX.hint();
+                        renderBoard();
+                        return;
+                    }
+                }
+            }
+
+            // 3. Check Tableau face-up stacks -> other Tableau columns (that reveal a face-down card or clear a slot)
+            for (let c = 0; c < 7; c++) {
+                const col = gameState.tableau[c];
+                const firstFaceUpIdx = col.findIndex(card => card.faceUp);
+                if (firstFaceUpIdx === -1) continue;
+                const leadCard = col[firstFaceUpIdx];
+                // Skip moving a King from the bottom of a column to another empty column
+                if (leadCard.value === 13 && firstFaceUpIdx === 0) continue;
+
+                for (let targetC = 0; targetC < 7; targetC++) {
+                    if (c === targetC) continue;
+                    if (canMoveToTableau(leadCard, targetC)) {
+                        for (let k = firstFaceUpIdx; k < col.length; k++) {
+                            hintedCardIds.add(col[k].id);
+                        }
+                        SoundFX.hint();
+                        renderBoard();
+                        return;
+                    }
+                }
+            }
+
+            // 4. Suggest clicking Stock if cards remain
+            if (gameState.stock.length > 0 || gameState.waste.length > 0) {
+                const stockSlot = document.getElementById('stock-slot');
+                const rect = stockSlot.getBoundingClientRect();
+                spawnCallout('DRAW!', rect.left + rect.width / 2, rect.top + rect.height / 2, '#00D2FF');
+                SoundFX.hint();
+            } else {
+                spawnCallout('STUCK!', window.innerWidth / 2, window.innerHeight / 2, '#FF1E42');
+                SoundFX.error();
+            }
+        }
+
+        function checkAutoCompleteAvailability() {
+            if (gameState.gameWon) return;
+            // Available ONLY when Stock & Waste are completely empty and every Tableau card is face-up
+            if (gameState.stock.length === 0 && gameState.waste.length === 0) {
+                const allFaceUp = gameState.tableau.every(col => col.every(c => c.faceUp));
+                const totalRemaining = gameState.tableau.reduce((acc, col) => acc + col.length, 0);
+                if (allFaceUp && totalRemaining > 0) {
+                    document.getElementById('btn-autocomplete').classList.remove('hidden');
+                    return;
+                }
+            }
+            document.getElementById('btn-autocomplete').classList.add('hidden');
+        }
+
+        function triggerAutoComplete() {
+            document.getElementById('btn-autocomplete').classList.add('hidden');
+            const step = () => {
+                if (gameState.gameWon) return;
+                let moved = false;
+                for (let c = 0; c < 7; c++) {
+                    const col = gameState.tableau[c];
+                    if (col.length > 0) {
+                        const topCard = col[col.length - 1];
+                        const fIdx = findValidFoundationIndex(topCard);
+                        if (fIdx !== -1) {
+                            const el = document.getElementById(`tableau-${c}`);
+                            const rect = el.getBoundingClientRect();
+                            executeMove(
+                                { type: 'tableau', colIndex: c, cardIndex: col.length - 1 },
+                                { type: 'foundation', index: fIdx },
+                                { x: rect.left + rect.width / 2, y: rect.top + 60 }
+                            );
+                            moved = true;
+                            break;
+                        }
+                    }
+                }
+                if (moved && !gameState.gameWon) {
+                    setTimeout(step, 100);
+                }
+            };
+            step();
+        }
+
+        function checkWinCondition() {
+            const totalInFoundations = gameState.foundations.reduce((sum, pile) => sum + pile.length, 0);
+            if (totalInFoundations === 52 && !gameState.gameWon) {
+                gameState.gameWon = true;
+                clearInterval(gameState.timerInterval);
+                document.getElementById('btn-autocomplete').classList.add('hidden');
+                SoundFX.win();
+                spawnCallout('VICTORY!', window.innerWidth / 2, window.innerHeight / 2, '#FF1E42');
+                setTimeout(() => {
+                    document.getElementById('win-score').textContent = gameState.score;
+                    document.getElementById('win-moves').textContent = gameState.moves;
+                    document.getElementById('win-time').textContent = formatTime(gameState.seconds);
+                    document.getElementById('victory-overlay').classList.remove('hidden');
+                }, 650);
+            }
+        }
+
+        // ==========================================
+        // 7. RENDERING & INTERACTION (DRAG + SMART TAP)
+        // ==========================================
+        function formatTime(secs) {
+            const m = Math.floor(secs / 60).toString().padStart(2, '0');
+            const s = (secs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer-display').textContent = formatTime(gameState.seconds);
+        }
+
+        function updateHUD() {
+            document.getElementById('score-display').textContent = gameState.score;
+            document.getElementById('move-count').textContent = gameState.moves;
+            updateTimerDisplay();
+            document.getElementById('btn-undo').disabled = undoStack.length === 0;
+        }
+
+        function createCardElement(card, sourceInfo, isPlayable = true) {
+            const el = document.createElement('div');
+            el.className = 'playing-card';
+            el.dataset.cardId = card.id;
+
+            if (hintedCardIds.has(card.id)) {
+                el.classList.add('hint-card');
+            }
+
+            // Face-down cards cannot be moved, dragged, or selected
+            if (!card.faceUp) {
+                el.style.cursor = 'default';
+                el.innerHTML = `
+                    <div class="card-back back-${currentArtStyle}">
+                        <div class="card-back-inner">
+                            ${getCardBackInnerSVG()}
+                        </div>
+                    </div>
+                `;
+                return el;
+            }
+
+            const isRed = card.color === 'red';
+            const colorClass = isRed ? 'suit-red' : 'suit-black';
+            const isFace = card.value >= 11;
+
+            const centerGraphic = isFace
+                ? getFaceCardCenterSVG(card.label, card.suit)
+                : `<div class="w-[52%] h-[52%]">${getSuitSVG(card.suit)}</div>`;
+
+            el.innerHTML = `
+                <div class="card-front style-${currentArtStyle} ${isRed ? 'is-red' : ''}">
+                    <div class="card-corner ${colorClass}">
+                        <span class="card-rank">${card.label}</span>
+                        <div class="card-mini-suit">${getSuitSVG(card.suit)}</div>
+                    </div>
+                    <div class="card-center-art">
+                        ${centerGraphic}
+                    </div>
+                    <div class="card-corner card-corner-bottom ${colorClass}">
+                        <span class="card-rank">${card.label}</span>
+                        <div class="card-mini-suit">${getSuitSVG(card.suit)}</div>
+                    </div>
+                </div>
+            `;
+
+            if (isPlayable) {
+                attachCardInteractions(el, card, sourceInfo);
+            } else {
+                el.style.cursor = 'default';
+            }
+            return el;
+        }
+
+        function renderBoard() {
+            // 1. Render Stock
+            const stockSlot = document.getElementById('stock-slot');
+            Array.from(stockSlot.querySelectorAll('.playing-card')).forEach(n => n.remove());
+            if (gameState.stock.length > 0) {
+                const topStock = gameState.stock[gameState.stock.length - 1];
+                const cardEl = createCardElement(topStock, { type: 'stock' }, false);
+                cardEl.style.cursor = 'pointer';
+                if (gameState.stock.length > 8) {
+                    cardEl.style.boxShadow = '2px 2px 0 #FFFFFF, 4px 4px 0 #0D0D0D, 6px 6px 0 #FFE600, 8px 8px 0 #0D0D0D';
+                }
+                stockSlot.appendChild(cardEl);
+            }
+
+            // 2. Render Waste (in Draw 3 mode, fan up to 3 top cards; ONLY the top-most card is playable)
+            const wasteSlot = document.getElementById('waste-slot');
+            wasteSlot.innerHTML = '';
+            if (gameState.waste.length > 0) {
+                const visibleCount = drawCount === 3 ? Math.min(3, gameState.waste.length) : 1;
+                const startIdx = gameState.waste.length - visibleCount;
+                const cardW = wasteSlot.clientWidth || 80;
+                const fanStep = Math.min(20, Math.round(cardW * 0.24));
+
+                for (let i = startIdx; i < gameState.waste.length; i++) {
+                    const isTopWasteCard = (i === gameState.waste.length - 1);
+                    const fanOffset = (i - startIdx) * fanStep;
+                    const cardEl = createCardElement(
+                        gameState.waste[i],
+                        { type: 'waste', colIndex: 0, cardIndex: i },
+                        isTopWasteCard
+                    );
+                    cardEl.style.left = `${fanOffset}px`;
+                    cardEl.style.zIndex = `${i + 1}`;
+                    wasteSlot.appendChild(cardEl);
+                }
+            }
+
+            // 3. Render Foundations
+            for (let i = 0; i < 4; i++) {
+                const fSlot = document.getElementById(`foundation-${i}`);
+                Array.from(fSlot.querySelectorAll('.playing-card')).forEach(n => n.remove());
+                const pile = gameState.foundations[i];
+                if (pile.length > 0) {
+                    const topCard = pile[pile.length - 1];
+                    const cardEl = createCardElement(
+                        topCard,
+                        { type: 'foundation', colIndex: i, cardIndex: pile.length - 1 },
+                        true
+                    );
+                    fSlot.appendChild(cardEl);
+                }
+            }
+
+            // 4. Render Tableau Columns with dynamic vertical compression
+            const boardHeight = document.getElementById('game-board').clientHeight;
+            const topRowHeight = document.querySelector('.top-row').clientHeight;
+            const cardHeight = document.getElementById('stock-slot').clientHeight || 110;
+            const availTableauHeight = Math.max(220, boardHeight - topRowHeight - 36);
+
+            for (let colIdx = 0; colIdx < 7; colIdx++) {
+                const colEl = document.getElementById(`tableau-${colIdx}`);
+                Array.from(colEl.querySelectorAll('.playing-card')).forEach(n => n.remove());
+
+                const cards = gameState.tableau[colIdx];
+                if (cards.length === 0) continue;
+
+                const defaultFaceDownOffset = Math.max(11, Math.min(20, cardHeight * 0.16));
+                const defaultFaceUpOffset = Math.max(20, Math.min(34, cardHeight * 0.27));
+
+                let totalNeeded = cardHeight;
+                for (let k = 0; k < cards.length - 1; k++) {
+                    totalNeeded += cards[k].faceUp ? defaultFaceUpOffset : defaultFaceDownOffset;
+                }
+
+                const scaleFactor = totalNeeded > availTableauHeight
+                    ? Math.max(0.45, (availTableauHeight - cardHeight) / (totalNeeded - cardHeight))
+                    : 1;
+
+                let currentY = 0;
+                cards.forEach((card, cardIdx) => {
+                    const cardEl = createCardElement(
+                        card,
+                        { type: 'tableau', colIndex: colIdx, cardIndex: cardIdx },
+                        card.faceUp
+                    );
+                    cardEl.style.top = `${Math.round(currentY)}px`;
+                    cardEl.style.zIndex = `${cardIdx + 1}`;
+                    colEl.appendChild(cardEl);
+
+                    currentY += (card.faceUp ? defaultFaceUpOffset : defaultFaceDownOffset) * scaleFactor;
+                });
+            }
+        }
+
+        // ==========================================
+        // 8. POINTER DRAG-AND-DROP & SMART TAP HANDLERS
+        // ==========================================
+        function attachCardInteractions(cardEl, card, sourceInfo) {
+            cardEl.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0 && e.pointerType === 'mouse') return;
+                if (gameState.gameWon || !card.faceUp) return;
+                e.stopPropagation();
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                let isDragging = false;
+                let dragGroup = [];
+                let initialOffsets = [];
+
+                // Gather stack of cards that move together
+                if (sourceInfo.type === 'tableau') {
+                    const colEl = document.getElementById(`tableau-${sourceInfo.colIndex}`);
+                    const allColCards = Array.from(colEl.querySelectorAll('.playing-card'));
+                    dragGroup = allColCards.slice(sourceInfo.cardIndex);
+                } else {
+                    dragGroup = [cardEl];
+                }
+
+                dragGroup.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    initialOffsets.push({
+                        el,
+                        offsetX: startX - rect.left,
+                        offsetY: startY - rect.top,
+                        origParent: el.parentElement,
+                        origTop: el.style.top,
+                        origLeft: el.style.left,
+                        origZ: el.style.zIndex
+                    });
+                });
+
+                const onPointerMove = (moveEvent) => {
+                    const dx = moveEvent.clientX - startX;
+                    const dy = moveEvent.clientY - startY;
+
+                    // Distinguish intentional drag (> 6px) from clean click/tap (<= 6px)
+                    if (!isDragging && Math.hypot(dx, dy) > 6) {
+                        isDragging = true;
+                        hintedCardIds.clear();
+                        initialOffsets.forEach((item, idx) => {
+                            item.el.classList.add('dragging');
+                            item.el.style.position = 'fixed';
+                            item.el.style.zIndex = `${9000 + idx}`;
+                            document.body.appendChild(item.el);
+                        });
+                    }
+
+                    if (isDragging) {
+                        initialOffsets.forEach((item) => {
+                            item.el.style.left = `${moveEvent.clientX - item.offsetX}px`;
+                            item.el.style.top = `${moveEvent.clientY - item.offsetY}px`;
+                        });
+                        highlightDropTarget(moveEvent.clientX, moveEvent.clientY, card, dragGroup.length);
+                    }
+                };
+
+                const onPointerUp = (upEvent) => {
+                    window.removeEventListener('pointermove', onPointerMove);
+                    window.removeEventListener('pointerup', onPointerUp);
+                    clearDropHighlights();
+
+                    if (isDragging) {
+                        // Restore DOM nodes before re-rendering
+                        initialOffsets.forEach(item => {
+                            item.el.classList.remove('dragging');
+                            item.el.style.position = 'absolute';
+                            item.el.style.left = item.origLeft;
+                            item.el.style.top = item.origTop;
+                            item.el.style.zIndex = item.origZ;
+                            item.origParent.appendChild(item.el);
+                        });
+
+                        const target = findDropTarget(upEvent.clientX, upEvent.clientY);
+                        if (target) {
+                            const success = executeMove(sourceInfo, target, { x: upEvent.clientX, y: upEvent.clientY });
+                            if (!success) {
+                                SoundFX.error();
+                                renderBoard();
+                            }
+                        } else {
+                            renderBoard();
+                        }
+                    } else {
+                        // Clean tap/click (<= 6px movement): smart auto-move to best legal destination
+                        const moved = smartAutoMove(sourceInfo, { x: upEvent.clientX, y: upEvent.clientY });
+                        if (!moved) {
+                            SoundFX.error();
+                        }
+                    }
+                };
+
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp);
+            });
+        }
+
+        function findDropTarget(x, y) {
+            // Check foundations first
+            for (let i = 0; i < 4; i++) {
+                const rect = document.getElementById(`foundation-${i}`).getBoundingClientRect();
+                if (x >= rect.left - 10 && x <= rect.right + 10 && y >= rect.top - 10 && y <= rect.bottom + 10) {
+                    return { type: 'foundation', index: i };
+                }
+            }
+            // Check tableau columns
+            for (let i = 0; i < 7; i++) {
+                const rect = document.getElementById(`tableau-${i}`).getBoundingClientRect();
+                if (x >= rect.left - 8 && x <= rect.right + 8 && y >= rect.top - 10 && y <= rect.bottom + 20) {
+                    return { type: 'tableau', index: i };
+                }
+            }
+            return null;
+        }
+
+        function highlightDropTarget(x, y, leadCard, stackCount) {
+            clearDropHighlights();
+            const target = findDropTarget(x, y);
+            if (!target) return;
+
+            if (target.type === 'foundation' && stackCount === 1 && canMoveToFoundation(leadCard, target.index)) {
+                document.getElementById(`foundation-${target.index}`).classList.add('highlight-target');
+            } else if (target.type === 'tableau' && canMoveToTableau(leadCard, target.index)) {
+                const col = document.getElementById(`tableau-${target.index}`);
+                const cards = col.querySelectorAll('.playing-card');
+                if (cards.length > 0) {
+                    cards[cards.length - 1].classList.add('highlight-target');
+                } else {
+                    col.querySelector('.tableau-base-slot').classList.add('highlight-target');
+                }
+            }
+        }
+
+        function clearDropHighlights() {
+            document.querySelectorAll('.highlight-target').forEach(el => el.classList.remove('highlight-target'));
+        }
+
+        // Boot game on window load
+        window.onload = function () {
+            window.addEventListener('resize', () => {
+                renderBoard();
+            });
+
+            renderBackdropArt();
+            startNewGame();
+        };
+    </script>
+</body>
+</html>

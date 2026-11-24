@@ -1,15 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { BackgroundTheme } from '../game/types';
 import { soundEngine } from '../audio/soundEngine';
 import { SuitIcon } from './CardArt';
 
 interface IntroSplashProps {
-  backgroundTheme: BackgroundTheme;
   onComplete: () => void;
 }
 
-export const IntroSplash: React.FC<IntroSplashProps> = ({ backgroundTheme, onComplete }) => {
+export const IntroSplash: React.FC<IntroSplashProps> = ({ onComplete }) => {
   const completedRef = useRef(false);
   const soundPlayedRef = useRef(false);
 
@@ -48,12 +46,12 @@ export const IntroSplash: React.FC<IntroSplashProps> = ({ backgroundTheme, onCom
         if (e.key === 'Enter' || e.key === ' ') handleInteraction();
       }}
       aria-label="POP! Solitaire Intro Splash Screen"
-      className={`relative w-full h-full bg-theme-${backgroundTheme} overflow-hidden flex flex-col items-center justify-center p-6 cursor-pointer`}
+      className="relative w-full h-full pop-halftone-bg overflow-hidden flex flex-col items-center justify-center p-6 cursor-pointer"
     >
       {/* Expanding Comic Sunburst Backdrop */}
       <motion.div
         initial={{ scale: 0.2, opacity: 0, rotate: -35 }}
-        animate={{ scale: 1, opacity: 0.3, rotate: 20 }}
+        animate={{ scale: 1, opacity: 0.26, rotate: 20 }}
         transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
       >

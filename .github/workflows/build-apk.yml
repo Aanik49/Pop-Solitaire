@@ -34,7 +34,7 @@ jobs:
         run: npm run build
 
       - name: Install Capacitor Android tooling
-        run: npm install --no-save --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/assets@3
+        run: npm install --no-save --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/app@7 @capacitor/status-bar@7 @capacitor/assets@3
 
       - name: Generate Android project
         run: |
@@ -42,6 +42,29 @@ jobs:
             npx cap add android
           fi
           npx cap sync android
+
+      - name: Configure fullscreen yellow status bar in Android theme
+        run: |
+          python3 -c '
+          import os
+          path = "android/app/src/main/res/values/styles.xml"
+          if os.path.exists(path):
+              with open(path, "r", encoding="utf-8") as f:
+                  content = f.read()
+              items = (
+                  "        <item name=\"android:windowFullscreen\">true</item>\n"
+                  "        <item name=\"android:windowLayoutInDisplayCutoutMode\">shortEdges</item>\n"
+                  "        <item name=\"android:statusBarColor\">#FFE600</item>\n"
+                  "        <item name=\"android:windowBackground\">#FFE600</item>"
+              )
+              if "android:windowFullscreen" not in content:
+                  content = content.replace(
+                      "name=\"AppTheme.NoActionBar\" parent=\"Theme.AppCompat.DayNight.NoActionBar\">",
+                      "name=\"AppTheme.NoActionBar\" parent=\"Theme.AppCompat.DayNight.NoActionBar\">\n" + items,
+                  )
+                  with open(path, "w", encoding="utf-8") as f:
+                      f.write(content)
+          '
 
       - name: Generate Android launcher icons and splash screen
         run: |
