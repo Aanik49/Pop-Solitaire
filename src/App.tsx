@@ -732,46 +732,28 @@ export default function App() {
           {/* Multi-Layered Theme-Specific Pop Art Gameplay Tabletop Backdrop */}
           <GameplayBackdrop theme={gameplayTheme} />
 
-          {/* Slim Single-Row Pop Yellow Top Scoreboard Bar (with Yellow Safe-Top Fill) */}
-          <header className="safe-top-yellow w-full border-b-[3.5px] border-[#0D0D0D] px-2 sm:px-4 pb-1.5 sm:pb-2 pt-1.5 sm:pt-2 z-50 shadow-[0_4px_0_#0D0D0D] shrink-0 relative">
-            <div className="w-full max-w-[1040px] mx-auto flex items-center justify-between gap-1.5 sm:gap-3">
-              {/* Left: Tilted Comic Brand Stamp */}
-              <button
-                type="button"
-                onClick={() => {
-                  soundEngine.playButton();
-                  setScreen('PAUSED');
-                }}
-                style={{
-                  backgroundColor: 'var(--hud-accent)',
-                  color: 'var(--hud-accent-text)',
-                }}
-                className="font-bangers text-base sm:text-xl md:text-2xl px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg border-[2.5px] sm:border-[3px] border-[#0D0D0D] shadow-[2.5px_2.5px_0_#0D0D0D] -rotate-2 tracking-wider whitespace-nowrap cursor-pointer hover:brightness-105 active:translate-y-0.5 transition-all shrink-0"
-                title="Open Menu & Theme Customization"
-              >
-                <span className="md:hidden">POP!</span>
-                <span className="hidden md:inline">POP! SOLITAIRE</span>
-              </button>
-
-              {/* Center: Crisp White Rectangular Comic Scoreboard */}
-              <div className="bg-[#FFFDF7] border-[2.5px] sm:border-[3px] border-[#0D0D0D] rounded-lg px-2 sm:px-4 py-1 shadow-[3px_3px_0_#0D0D0D] flex items-center justify-center gap-1.5 sm:gap-3.5 tabular-nums min-w-0">
-                <div className="flex items-baseline gap-1">
-                  <span className="font-bangers text-[11px] sm:text-sm text-[#FF1E42] tracking-wide">SCORE</span>
-                  <span className="font-bangers text-sm sm:text-xl text-[#0D0D0D] leading-none">
+          {/* Pop Yellow Top Scoreboard Bar (with Yellow Safe-Top Fill & Equal Top/Bottom Space) */}
+          <header className="safe-top-yellow w-full border-b-[3.5px] border-[#0D0D0D] z-50 shadow-[0_4px_0_#0D0D0D] shrink-0 relative">
+            <div className="w-full max-w-[1040px] mx-auto px-2.5 sm:px-4 py-3 sm:py-3.5 flex items-stretch justify-between gap-2 sm:gap-3">
+              {/* Expanded Crisp White Comic Scoreboard */}
+              <div className="flex-1 bg-[#FFFDF7] border-[2.5px] sm:border-[3px] border-[#0D0D0D] rounded-lg px-3 sm:px-6 py-1.5 sm:py-2 shadow-[3px_3px_0_#0D0D0D] flex items-center justify-around gap-2 sm:gap-4 tabular-nums min-w-0">
+                <div className="flex items-baseline justify-center gap-1.5 min-w-0">
+                  <span className="font-bangers text-xs sm:text-base text-[#FF1E42] tracking-wide">SCORE</span>
+                  <span className="font-bangers text-base sm:text-2xl text-[#0D0D0D] leading-none">
                     {gameState.score}
                   </span>
                 </div>
-                <span className="w-[2px] h-3.5 sm:h-4 bg-[#0D0D0D]/25 rounded-full shrink-0" aria-hidden="true" />
-                <div className="flex items-baseline gap-1">
-                  <span className="font-bangers text-[11px] sm:text-sm text-[#1D4ED8] tracking-wide">MOVES</span>
-                  <span className="font-bangers text-sm sm:text-xl text-[#0D0D0D] leading-none">
+                <span className="w-[2px] h-4 sm:h-5 bg-[#0D0D0D]/25 rounded-full shrink-0" aria-hidden="true" />
+                <div className="flex items-baseline justify-center gap-1.5 min-w-0">
+                  <span className="font-bangers text-xs sm:text-base text-[#1D4ED8] tracking-wide">MOVES</span>
+                  <span className="font-bangers text-base sm:text-2xl text-[#0D0D0D] leading-none">
                     {gameState.moves}
                   </span>
                 </div>
-                <span className="w-[2px] h-3.5 sm:h-4 bg-[#0D0D0D]/25 rounded-full shrink-0" aria-hidden="true" />
-                <div className="flex items-baseline gap-1">
-                  <span className="font-bangers text-[11px] sm:text-sm text-[#FF0099] tracking-wide">TIME</span>
-                  <span className="font-bangers text-sm sm:text-xl text-[#0D0D0D] leading-none">
+                <span className="w-[2px] h-4 sm:h-5 bg-[#0D0D0D]/25 rounded-full shrink-0" aria-hidden="true" />
+                <div className="flex items-baseline justify-center gap-1.5 min-w-0">
+                  <span className="font-bangers text-xs sm:text-base text-[#FF0099] tracking-wide">TIME</span>
+                  <span className="font-bangers text-base sm:text-2xl text-[#0D0D0D] leading-none">
                     {timeFormatted}
                   </span>
                 </div>
@@ -785,17 +767,17 @@ export default function App() {
                     soundEngine.playButton();
                     setScreen('PAUSED');
                   }}
-                  className="pop-btn bg-[#FF0099] text-white font-bangers text-xs sm:text-base px-2 sm:px-3 py-1 rounded-lg tracking-wide inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                  className="pop-btn bg-[#FF0099] text-white font-bangers text-sm sm:text-lg px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg tracking-wide inline-flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0"
                   title="Daily Challenge · Pre-seeded worldwide layout"
                 >
-                  <Calendar className="w-3.5 h-3.5 shrink-0" strokeWidth={2.8} />
+                  <Calendar className="w-4 h-4 shrink-0" strokeWidth={2.8} />
                   <span>DAILY</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleToggleDrawModeInGame}
-                  className="pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-xs sm:text-base px-2 sm:px-3 py-1 rounded-lg tracking-wide whitespace-nowrap shrink-0"
+                  className="pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm sm:text-lg px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg tracking-wide inline-flex items-center justify-center whitespace-nowrap shrink-0"
                   title="Switch Draw 1 / Draw 3 and deal new game"
                 >
                   DRAW {drawMode}
