@@ -112,65 +112,6 @@ export const GameplayBackdrop: React.FC<GameplayBackdropProps> = React.memo(({ t
         </svg>
       )}
 
-      {theme === 'warhol' && (
-        <svg
-          className="w-full h-full block"
-          viewBox="0 0 1440 900"
-          preserveAspectRatio="xMidYMid slice"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <pattern id="warhol-dots" width="14" height="14" patternUnits="userSpaceOnUse">
-              <circle cx="4" cy="4" r="3.2" fill="#0D0D0D" fillOpacity="0.16" />
-              <circle cx="11" cy="11" r="3.2" fill="#FFFFFF" fillOpacity="0.22" />
-            </pattern>
-            <radialGradient id="center-clarity-warhol" cx="50%" cy="48%" r="58%">
-              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.65" />
-              <stop offset="72%" stopColor="#FFFFFF" stopOpacity="0.24" />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <rect x="0" y="0" width="720" height="450" fill="#FF3B9A" fillOpacity="0.35" />
-          <rect x="720" y="0" width="720" height="450" fill="#00E5FF" fillOpacity="0.38" />
-          <rect x="0" y="450" width="720" height="450" fill="#FFEB00" fillOpacity="0.45" />
-          <rect x="720" y="450" width="720" height="450" fill="#39FF14" fillOpacity="0.32" />
-          <rect x="0" y="0" width="1440" height="900" fill="url(#warhol-dots)" />
-          <line x1="720" y1="0" x2="720" y2="900" stroke="#0D0D0D" strokeWidth="6" strokeOpacity="0.32" />
-          <line x1="0" y1="450" x2="1440" y2="450" stroke="#0D0D0D" strokeWidth="6" strokeOpacity="0.32" />
-          <g className="backdrop-float" opacity="0.55" stroke="#0D0D0D" strokeWidth="3.5">
-            <g transform="translate(95, 360)">
-              <circle cx="0" cy="-26" r="18" fill="#FFEB00" />
-              <circle cx="25" cy="-8" r="18" fill="#FFEB00" />
-              <circle cx="15" cy="22" r="18" fill="#FFEB00" />
-              <circle cx="-15" cy="22" r="18" fill="#FFEB00" />
-              <circle cx="-25" cy="-8" r="18" fill="#FFEB00" />
-              <circle cx="0" cy="0" r="15" fill="#FF0099" />
-            </g>
-            <g transform="translate(62, 540)">
-              <rect x="0" y="0" width="66" height="94" rx="6" fill="#FFFFFF" />
-              <rect x="0" y="0" width="66" height="47" fill="#FF1E42" />
-              <circle cx="33" cy="47" r="13" fill="#FFEB00" />
-              <line x1="12" y1="70" x2="54" y2="70" stroke="#0D0D0D" strokeWidth="4" />
-            </g>
-            <g transform="translate(1345, 360)">
-              <circle cx="0" cy="-26" r="18" fill="#00E5FF" />
-              <circle cx="25" cy="-8" r="18" fill="#00E5FF" />
-              <circle cx="15" cy="22" r="18" fill="#00E5FF" />
-              <circle cx="-15" cy="22" r="18" fill="#00E5FF" />
-              <circle cx="-25" cy="-8" r="18" fill="#00E5FF" />
-              <circle cx="0" cy="0" r="15" fill="#FFEB00" />
-            </g>
-            <circle cx="95" cy="690" r="22" fill="none" strokeWidth="4" />
-            <line x1="65" y1="690" x2="125" y2="690" strokeWidth="3" />
-            <line x1="95" y1="660" x2="95" y2="720" strokeWidth="3" />
-            <circle cx="1345" cy="690" r="22" fill="none" strokeWidth="4" />
-            <line x1="1315" y1="690" x2="1375" y2="690" strokeWidth="3" />
-            <line x1="1345" y1="660" x2="1345" y2="720" strokeWidth="3" />
-          </g>
-          <rect x="0" y="0" width="1440" height="900" fill="url(#center-clarity-warhol)" />
-        </svg>
-      )}
-
       {theme === 'memphis' && (
         <svg
           className="w-full h-full block"

@@ -1,31 +1,42 @@
 import React from 'react';
 import { Card, CardBackStyle, GameplayTheme, Suit } from '../game/types';
 
+export type CardVisualStyle = GameplayTheme | Exclude<CardBackStyle, 'theme'>;
+
 export const CARD_BACK_OPTIONS: { id: CardBackStyle; label: string }[] = [
   { id: 'theme', label: 'Match Theme' },
-  { id: 'dots', label: 'Ben-Day' },
-  { id: 'stripes', label: 'Comic' },
+  { id: 'dots', label: 'Ben Day' },
   { id: 'geometric', label: 'Mod Geo' },
-  { id: 'checker', label: 'Pop Check' },
+  { id: 'checker', label: 'POP' },
 ];
 
-export const THEME_SUIT_PALETTE: Record<
-  GameplayTheme,
+export const CARD_SUIT_PALETTE: Record<
+  CardVisualStyle,
   { red: string; black: string; hiRed: string; hiBlack: string }
 > = {
   comic: { red: '#FF1E42', black: '#0D0D0D', hiRed: '#FFFFFF', hiBlack: '#00D2FF' },
-  warhol: { red: '#FF0099', black: '#1D4ED8', hiRed: '#FFEB00', hiBlack: '#00E5FF' },
   memphis: { red: '#FF5C8A', black: '#1F2937', hiRed: '#FFE600', hiBlack: '#5CE1E6' },
   street: { red: '#FF3B00', black: '#0D0D0D', hiRed: '#FFE600', hiBlack: '#FF5500' },
   manga: { red: '#FF2A6D', black: '#1E1B4B', hiRed: '#FBCFE8', hiBlack: '#38BDF8' },
+  // 3 standalone Card Styles (change both front & back!)
+  dots: { red: '#FF0099', black: '#1D4ED8', hiRed: '#FFE600', hiBlack: '#00D2FF' },
+  geometric: { red: '#E11D48', black: '#0F172A', hiRed: '#FFE600', hiBlack: '#38BDF8' },
+  checker: { red: '#FF006E', black: '#0D0D0D', hiRed: '#FFE600', hiBlack: '#00E676' },
 };
+
+export function resolveCardVisualStyle(
+  cardBackStyle: CardBackStyle = 'theme',
+  gameplayTheme: GameplayTheme = 'comic'
+): CardVisualStyle {
+  return cardBackStyle === 'theme' ? gameplayTheme : cardBackStyle;
+}
 
 export const SuitIcon: React.FC<{
   suit: Suit;
   className?: string;
-  gameplayTheme?: GameplayTheme;
-}> = ({ suit, className = 'w-full h-full', gameplayTheme = 'comic' }) => {
-  const palette = THEME_SUIT_PALETTE[gameplayTheme] || THEME_SUIT_PALETTE.comic;
+  visualStyle?: CardVisualStyle;
+}> = ({ suit, className = 'w-full h-full', visualStyle = 'comic' }) => {
+  const palette = CARD_SUIT_PALETTE[visualStyle] || CARD_SUIT_PALETTE.comic;
 
   switch (suit) {
     case 'spades':
@@ -76,7 +87,7 @@ export const SuitIcon: React.FC<{
             strokeWidth="3"
             strokeLinejoin="round"
           />
-          <circle cx="29" cy="17" r="2.8" fill={gameplayTheme === 'comic' ? '#FFE600' : palette.hiBlack} />
+          <circle cx="29" cy="17" r="2.8" fill={visualStyle === 'comic' ? '#FFE600' : palette.hiBlack} />
         </svg>
       );
     case 'diamonds':
@@ -91,7 +102,7 @@ export const SuitIcon: React.FC<{
           />
           <polygon
             points="32,14 44,32 32,50 20,32"
-            fill={gameplayTheme === 'comic' ? '#FFE600' : palette.hiRed}
+            fill={visualStyle === 'comic' ? '#FFE600' : palette.hiRed}
             opacity="0.5"
           />
         </svg>
@@ -102,33 +113,43 @@ export const SuitIcon: React.FC<{
 const FaceCardEmblem: React.FC<{
   label: string;
   suit: Suit;
-  gameplayTheme?: GameplayTheme;
-}> = ({ label, suit, gameplayTheme = 'comic' }) => {
+  visualStyle?: CardVisualStyle;
+}> = ({ label, suit, visualStyle = 'comic' }) => {
   const isRed = suit === 'hearts' || suit === 'diamonds';
   const labelWord = label === 'K' ? 'KING' : label === 'Q' ? 'QUEEN' : 'JACK';
 
-  // Theme 2: Andy Warhol Neon Silkscreen Court Art
-  if (gameplayTheme === 'warhol') {
-    const c1 = isRed ? '#FF0099' : '#00E5FF';
-    const c2 = isRed ? '#FFEB00' : '#39FF14';
+  // Standalone Card Style 1: Ben Day Halftone Medallion Court Art
+  if (visualStyle === 'dots') {
+    const outer = isRed ? '#FF0099' : '#00D2FF';
+    const inner = isRed ? '#FFE600' : '#1D4ED8';
+    const badgeText = isRed ? '#0D0D0D' : '#FFFFFF';
     return (
       <svg className="w-[76%] h-[64%]" viewBox="0 0 100 110" aria-hidden="true">
-        <rect x="6" y="6" width="44" height="44" fill={c1} stroke="#0D0D0D" strokeWidth="3.5" />
-        <rect x="50" y="6" width="44" height="44" fill={c2} stroke="#0D0D0D" strokeWidth="3.5" />
-        <rect x="6" y="50" width="44" height="44" fill={c2} stroke="#0D0D0D" strokeWidth="3.5" />
-        <rect x="50" y="50" width="44" height="44" fill={c1} stroke="#0D0D0D" strokeWidth="3.5" />
-        <circle cx="50" cy="46" r="24" fill="#FFFFFF" stroke="#0D0D0D" strokeWidth="4" />
-        <text x="50" y="55" textAnchor="middle" fontFamily="Bangers, sans-serif" fontSize="30" fill="#0D0D0D">
-          {label}
-        </text>
-        <rect x="14" y="84" width="72" height="18" fill="#0D0D0D" />
+        <rect x="8" y="8" width="84" height="94" rx="14" fill={outer} stroke="#0D0D0D" strokeWidth="4.5" />
+        {/* Ben-Day corner dots inside court frame */}
+        <circle cx="20" cy="20" r="4" fill="#FFFFFF" opacity="0.7" />
+        <circle cx="80" cy="20" r="4" fill="#FFFFFF" opacity="0.7" />
+        <circle cx="20" cy="70" r="4" fill="#FFFFFF" opacity="0.7" />
+        <circle cx="80" cy="70" r="4" fill="#FFFFFF" opacity="0.7" />
+        <circle cx="50" cy="46" r="25" fill={inner} stroke="#0D0D0D" strokeWidth="4" />
         <text
           x="50"
-          y="98"
+          y="56"
           textAnchor="middle"
           fontFamily="Bangers, sans-serif"
-          fontSize="15"
-          fill="#FFEB00"
+          fontSize="31"
+          fill={badgeText}
+        >
+          {label}
+        </text>
+        <rect x="16" y="78" width="68" height="20" rx="6" fill="#0D0D0D" />
+        <text
+          x="50"
+          y="93"
+          textAnchor="middle"
+          fontFamily="Bangers, sans-serif"
+          fontSize="16"
+          fill="#FFE600"
           letterSpacing="1.5"
         >
           {labelWord}
@@ -137,8 +158,91 @@ const FaceCardEmblem: React.FC<{
     );
   }
 
-  // Theme 3: Memphis 80s Geometric Pop Court Art
-  if (gameplayTheme === 'memphis') {
+  // Standalone Card Style 2: Mod Geo Faceted Diamond Court Art
+  if (visualStyle === 'geometric') {
+    const primary = isRed ? '#E11D48' : '#1D4ED8';
+    const accent = isRed ? '#FFE600' : '#00D2FF';
+    return (
+      <svg className="w-[76%] h-[64%]" viewBox="0 0 100 110" aria-hidden="true">
+        <rect x="8" y="8" width="84" height="94" rx="4" fill="#FFFFFF" stroke="#0D0D0D" strokeWidth="4.5" />
+        <polygon
+          points="50,14 84,48 50,82 16,48"
+          fill={primary}
+          stroke="#0D0D0D"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+        <polygon
+          points="50,26 70,48 50,70 30,48"
+          fill={accent}
+          stroke="#0D0D0D"
+          strokeWidth="3.5"
+          strokeLinejoin="round"
+        />
+        <text
+          x="50"
+          y="56"
+          textAnchor="middle"
+          fontFamily="Bangers, sans-serif"
+          fontSize="24"
+          fill="#0D0D0D"
+        >
+          {label}
+        </text>
+        <rect x="14" y="80" width="72" height="18" fill="#0D0D0D" />
+        <text
+          x="50"
+          y="94"
+          textAnchor="middle"
+          fontFamily="Bangers, sans-serif"
+          fontSize="15"
+          fill="#FFFFFF"
+          letterSpacing="1.5"
+        >
+          {labelWord}
+        </text>
+      </svg>
+    );
+  }
+
+  // Standalone Card Style 3: POP Concentric Bullseye Starburst Court Art
+  if (visualStyle === 'checker') {
+    const ring1 = isRed ? '#FF006E' : '#00E676';
+    const ring2 = isRed ? '#FFE600' : '#00D2FF';
+    return (
+      <svg className="w-[76%] h-[64%]" viewBox="0 0 100 110" aria-hidden="true">
+        <rect x="8" y="8" width="84" height="94" rx="12" fill="#0D0D0D" stroke="#0D0D0D" strokeWidth="4" />
+        <circle cx="50" cy="46" r="31" fill={ring1} stroke="#0D0D0D" strokeWidth="3.5" />
+        <circle cx="50" cy="46" r="20" fill={ring2} stroke="#0D0D0D" strokeWidth="3.5" />
+        <circle cx="50" cy="46" r="10" fill="#FFFFFF" stroke="#0D0D0D" strokeWidth="3" />
+        <text
+          x="50"
+          y="53"
+          textAnchor="middle"
+          fontFamily="Bangers, sans-serif"
+          fontSize="18"
+          fill="#0D0D0D"
+        >
+          {label}
+        </text>
+        <rect x="16" y="79" width="68" height="19" rx="5" fill="#FFE600" stroke="#0D0D0D" strokeWidth="3" />
+        <text
+          x="50"
+          y="94"
+          textAnchor="middle"
+          fontFamily="Bangers, sans-serif"
+          fontSize="16"
+          fill="#0D0D0D"
+          letterSpacing="1.5"
+        >
+          {labelWord}
+        </text>
+      </svg>
+    );
+  }
+
+  // Theme: Memphis 80s Geometric Pop Court Art
+  if (visualStyle === 'memphis') {
     const main = isRed ? '#FF6B9D' : '#5CE1E6';
     const sub = isRed ? '#FFE600' : '#B5838D';
     return (
@@ -174,8 +278,8 @@ const FaceCardEmblem: React.FC<{
     );
   }
 
-  // Theme 4: Neo-Pop Street Graffiti Court Art
-  if (gameplayTheme === 'street') {
+  // Theme: Neo-Pop Street Graffiti Court Art
+  if (visualStyle === 'street') {
     const bg = isRed ? '#FF5500' : '#FFE600';
     const fg = isRed ? '#FFE600' : '#00D2FF';
     return (
@@ -207,8 +311,8 @@ const FaceCardEmblem: React.FC<{
     );
   }
 
-  // Theme 5: Retro Japanese Manga & Superflat Court Art
-  if (gameplayTheme === 'manga') {
+  // Theme: Retro Japanese Manga & Superflat Court Art
+  if (visualStyle === 'manga') {
     const aura = isRed ? '#FF2A6D' : '#38BDF8';
     const core = isRed ? '#FFE600' : '#A855F7';
     return (
@@ -240,7 +344,7 @@ const FaceCardEmblem: React.FC<{
     );
   }
 
-  // Theme 1 (Default): Lichtenstein Comic Pop Art Court Art
+  // Theme Default: Lichtenstein Comic Pop Art Court Art
   const primary = isRed ? '#FF1E42' : '#1D4ED8';
   const secondary = isRed ? '#FFE600' : '#00D2FF';
   const accent = isRed ? '#FF0099' : '#FFE600';
@@ -325,23 +429,19 @@ export const CardBackGraphic: React.FC<{
   styleVariant?: CardBackStyle;
   gameplayTheme?: GameplayTheme;
 }> = ({ styleVariant = 'theme', gameplayTheme = 'comic' }) => {
-  // When styleVariant === 'theme', render the signature card back matching the active gameplay theme
+  // Match Theme: renders signature card back for the active gameplay theme (Comic default, Memphis, Street, Manga)
   if (styleVariant === 'theme') {
     const themePatternClass =
-      gameplayTheme === 'warhol'
-        ? 'card-back-theme-warhol'
-        : gameplayTheme === 'memphis'
+      gameplayTheme === 'memphis'
         ? 'card-back-theme-memphis'
         : gameplayTheme === 'street'
         ? 'card-back-theme-street'
         : gameplayTheme === 'manga'
         ? 'card-back-theme-manga'
-        : 'card-back-dots';
+        : 'card-back-theme-comic';
 
     const themeInnerClass =
-      gameplayTheme === 'warhol'
-        ? 'bg-[#FFEB00] rounded-[2px]'
-        : gameplayTheme === 'memphis'
+      gameplayTheme === 'memphis'
         ? 'bg-[#FFFFFF] rounded-xl'
         : gameplayTheme === 'street'
         ? 'bg-[#FF1E42] rounded-[4px]'
@@ -354,16 +454,7 @@ export const CardBackGraphic: React.FC<{
         <div
           className={`w-[78%] h-[82%] border-[2.5px] border-[#0D0D0D] ${themeInnerClass} flex items-center justify-center shadow-[2px_2px_0_#0D0D0D] relative overflow-hidden`}
         >
-          {gameplayTheme === 'warhol' ? (
-            <svg className="w-4/5 h-4/5" viewBox="0 0 60 60" aria-hidden="true">
-              <circle cx="30" cy="14" r="10" fill="#FF0099" stroke="#0D0D0D" strokeWidth="2.5" />
-              <circle cx="45" cy="25" r="10" fill="#00E5FF" stroke="#0D0D0D" strokeWidth="2.5" />
-              <circle cx="39" cy="43" r="10" fill="#39FF14" stroke="#0D0D0D" strokeWidth="2.5" />
-              <circle cx="21" cy="43" r="10" fill="#FF0099" stroke="#0D0D0D" strokeWidth="2.5" />
-              <circle cx="15" cy="25" r="10" fill="#00E5FF" stroke="#0D0D0D" strokeWidth="2.5" />
-              <circle cx="30" cy="30" r="9" fill="#FFFFFF" stroke="#0D0D0D" strokeWidth="3" />
-            </svg>
-          ) : gameplayTheme === 'memphis' ? (
+          {gameplayTheme === 'memphis' ? (
             <svg className="w-4/5 h-4/5" viewBox="0 0 60 60" aria-hidden="true">
               <polygon
                 points="30,8 52,46 8,46"
@@ -422,41 +513,27 @@ export const CardBackGraphic: React.FC<{
     );
   }
 
-  // User-selected custom card back style override
+  // 3 Standalone Card Style backs (Ben Day, Mod Geo, POP)
   const patternClass =
-    styleVariant === 'stripes'
-      ? 'card-back-stripes'
-      : styleVariant === 'geometric'
+    styleVariant === 'geometric'
       ? 'card-back-geometric'
       : styleVariant === 'checker'
       ? 'card-back-checker'
       : 'card-back-dots';
 
   const innerBg =
-    styleVariant === 'stripes'
-      ? 'bg-[#00D2FF]'
-      : styleVariant === 'geometric'
+    styleVariant === 'geometric'
       ? 'bg-[#FF1E42]'
       : styleVariant === 'checker'
       ? 'bg-[#FF0099]'
-      : 'bg-[#1D4ED8]';
+      : 'bg-[#00D2FF]';
 
   return (
     <div className={`w-full h-full ${patternClass} flex items-center justify-center relative`}>
       <div
         className={`w-[76%] h-[80%] border-[2.5px] border-[#0D0D0D] rounded-md ${innerBg} flex items-center justify-center shadow-[2px_2px_0_#0D0D0D] relative overflow-hidden`}
       >
-        {styleVariant === 'stripes' ? (
-          <svg className="w-3/4 h-3/4" viewBox="0 0 60 60" aria-hidden="true">
-            <polygon
-              points="35,4 14,33 29,33 23,56 46,26 31,26"
-              fill="#FFE600"
-              stroke="#0D0D0D"
-              strokeWidth="3.5"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : styleVariant === 'geometric' ? (
+        {styleVariant === 'geometric' ? (
           <svg className="w-3/4 h-3/4" viewBox="0 0 60 60" aria-hidden="true">
             <polygon
               points="30,4 54,30 30,56 6,30"
@@ -480,9 +557,10 @@ export const CardBackGraphic: React.FC<{
             <circle cx="30" cy="30" r="5" fill="#0D0D0D" />
           </svg>
         ) : (
-          <svg className="w-3/4 h-3/4" viewBox="0 0 60 60" aria-hidden="true">
+          /* Ben Day Lightning & Halftone Starburst */
+          <svg className="w-4/5 h-4/5" viewBox="0 0 60 60" aria-hidden="true">
             <polygon
-              points="30,3 37,20 56,20 41,32 46,50 30,39 14,50 19,32 4,20 23,20"
+              points="35,4 14,33 29,33 23,56 46,26 31,26"
               fill="#FFE600"
               stroke="#0D0D0D"
               strokeWidth="3.5"
@@ -531,9 +609,14 @@ export const PlayingCardView: React.FC<PlayingCardViewProps> = React.memo(
   }) => {
     const isRed = card.color === 'red';
     const isFace = card.value >= 11;
-    const palette = THEME_SUIT_PALETTE[gameplayTheme] || THEME_SUIT_PALETTE.comic;
+    const visualStyle = resolveCardVisualStyle(cardBackStyle, gameplayTheme);
+    const palette = CARD_SUIT_PALETTE[visualStyle] || CARD_SUIT_PALETTE.comic;
     const rankColor = isRed ? palette.red : palette.black;
-    const frontSurfaceClass = `card-front-${gameplayTheme}-${isRed ? 'red' : 'black'}`;
+
+    const frontSurfaceClass =
+      cardBackStyle === 'theme'
+        ? `card-front-${gameplayTheme}-${isRed ? 'red' : 'black'}`
+        : `card-front-style-${cardBackStyle}-${isRed ? 'red' : 'black'}`;
 
     const animClass = isShaking
       ? 'animate-card-shake'
@@ -582,17 +665,17 @@ export const PlayingCardView: React.FC<PlayingCardViewProps> = React.memo(
                 {card.label}
               </span>
               <div className="w-[clamp(10px,1.5vw,16px)] h-[clamp(10px,1.5vw,16px)]">
-                <SuitIcon suit={card.suit} gameplayTheme={gameplayTheme} />
+                <SuitIcon suit={card.suit} visualStyle={visualStyle} />
               </div>
             </div>
 
             {/* Center Pop Art Artwork */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
               {isFace ? (
-                <FaceCardEmblem label={card.label} suit={card.suit} gameplayTheme={gameplayTheme} />
+                <FaceCardEmblem label={card.label} suit={card.suit} visualStyle={visualStyle} />
               ) : (
                 <div className="w-[50%] h-[50%]">
-                  <SuitIcon suit={card.suit} gameplayTheme={gameplayTheme} />
+                  <SuitIcon suit={card.suit} visualStyle={visualStyle} />
                 </div>
               )}
             </div>
@@ -606,7 +689,7 @@ export const PlayingCardView: React.FC<PlayingCardViewProps> = React.memo(
                 {card.label}
               </span>
               <div className="w-[clamp(10px,1.5vw,16px)] h-[clamp(10px,1.5vw,16px)]">
-                <SuitIcon suit={card.suit} gameplayTheme={gameplayTheme} />
+                <SuitIcon suit={card.suit} visualStyle={visualStyle} />
               </div>
             </div>
           </div>

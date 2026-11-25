@@ -81,7 +81,7 @@ body,
 }
 
 /* =========================================================
-   5 GAMEPLAY-ONLY ARTISTIC THEMES (Comic Default, Warhol, Memphis, Street, Manga)
+   4 GAMEPLAY-ONLY ARTISTIC THEMES (Comic Default, Memphis, Street, Manga)
    ========================================================= */
 .gameplay-theme-comic {
   background-color: #FFF6DC;
@@ -95,21 +95,6 @@ body,
   --slot-bg: rgba(255, 253, 245, 0.68);
   --hud-bg: #FFE600;
   --hud-accent: #FF1E42;
-  --hud-accent-text: #FFFFFF;
-}
-
-.gameplay-theme-warhol {
-  background-color: #FF2E93;
-  background-image:
-    radial-gradient(rgba(13, 13, 13, 0.14) 2px, transparent 2.1px),
-    linear-gradient(90deg, #FF47A3 0%, #FF47A3 50%, #00E5FF 50%, #00E5FF 100%);
-  background-size: 12px 12px, 100% 100%;
-  --card-radius: 4px;
-  --card-shadow: 4px 4px 0px #FF0099, 7px 7px 0px #0D0D0D;
-  --card-shadow-hover: 6px 6px 0px #00E5FF, 9px 9px 0px #0D0D0D;
-  --slot-bg: rgba(255, 255, 255, 0.78);
-  --hud-bg: #FFE600;
-  --hud-accent: #FF0099;
   --hud-accent-text: #FFFFFF;
 }
 
@@ -268,9 +253,9 @@ body,
 }
 
 /* =========================================================
-   CARD BACK PATTERNS (Custom & 5 Theme-Matched Variants)
+   CARD BACK PATTERNS (Theme-Matched & 3 Custom Card Styles)
    ========================================================= */
-.card-back-dots {
+.card-back-theme-comic {
   background-color: var(--pop-red);
   background-image:
     radial-gradient(var(--pop-yellow) 24%, transparent 25%),
@@ -279,15 +264,13 @@ body,
   background-position: 0 0, 5.5px 5.5px;
 }
 
-.card-back-stripes {
-  background-color: var(--pop-magenta);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--pop-magenta) 0px,
-    var(--pop-magenta) 6px,
-    var(--pop-yellow) 6px,
-    var(--pop-yellow) 12px
-  );
+.card-back-dots {
+  background-color: #FF0099;
+  background-image:
+    radial-gradient(#FFE600 28%, transparent 29%),
+    radial-gradient(#00D2FF 24%, transparent 25%);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px;
 }
 
 .card-back-geometric {
@@ -308,15 +291,6 @@ body,
     linear-gradient(45deg, #0D0D0D 25%, var(--pop-yellow) 25%, var(--pop-yellow) 75%, #0D0D0D 75%, #0D0D0D);
   background-size: 14px 14px;
   background-position: 0 0, 7px 7px;
-}
-
-/* Theme-specific signature card backs from reference */
-.card-back-theme-warhol {
-  background-color: #FF0099;
-  background-image:
-    linear-gradient(90deg, #FF0099 50%, #00E5FF 50%),
-    linear-gradient(0deg, rgba(255, 235, 0, 0.85) 50%, transparent 50%);
-  background-size: 100% 100%, 100% 100%;
 }
 
 .card-back-theme-memphis {
@@ -345,7 +319,7 @@ body,
 }
 
 /* =========================================================
-   5 THEME-ADAPTIVE CARD FRONT SURFACES
+   THEME-ADAPTIVE & CARD-STYLE FRONT SURFACES
    ========================================================= */
 .card-front-dots-black,
 .card-front-comic-black {
@@ -359,20 +333,6 @@ body,
   background-color: #FFFDF7;
   background-image: radial-gradient(rgba(255, 230, 0, 0.4) 22%, transparent 23%);
   background-size: 8px 8px;
-}
-
-.card-front-warhol-black {
-  background-color: #E0FCFF;
-  background-image: radial-gradient(rgba(13, 13, 13, 0.12) 1.5px, transparent 1.6px);
-  background-size: 6px 6px;
-  box-shadow: inset 0 0 0 2px #00E5FF;
-}
-
-.card-front-warhol-red {
-  background-color: #FFF0F8;
-  background-image: radial-gradient(rgba(13, 13, 13, 0.12) 1.5px, transparent 1.6px);
-  background-size: 6px 6px;
-  box-shadow: inset 0 0 0 2px #FF0099;
 }
 
 .card-front-memphis-black,
@@ -410,6 +370,79 @@ body,
     radial-gradient(rgba(30, 27, 75, 0.13) 1.3px, transparent 1.4px),
     linear-gradient(135deg, #FFFFFF 58%, #FCE7F3 100%);
   background-size: 5px 5px, 100% 100%;
+}
+
+/* Custom Card Style 1: Ben Day (Bold Vintage Halftone Newsprint Front) */
+.card-front-style-dots-black {
+  background-color: #ECFEFF;
+  background-image:
+    radial-gradient(rgba(29, 78, 216, 0.26) 24%, transparent 25%),
+    radial-gradient(rgba(0, 210, 255, 0.28) 24%, transparent 25%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  box-shadow: inset 0 0 0 2.5px #00D2FF;
+}
+
+.card-front-style-dots-red {
+  background-color: #FFF1F7;
+  background-image:
+    radial-gradient(rgba(255, 0, 153, 0.22) 24%, transparent 25%),
+    radial-gradient(rgba(255, 230, 0, 0.42) 24%, transparent 25%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  box-shadow: inset 0 0 0 2.5px #FF0099;
+}
+
+/* Custom Card Style 2: Mod Geo (60s Bauhaus Geometric Color-Block Front) */
+.card-front-style-geometric-black {
+  background-color: #F8FAFC;
+  background-image:
+    linear-gradient(135deg, rgba(29, 78, 216, 0.16) 0%, rgba(29, 78, 216, 0.16) 22%, transparent 22.5%),
+    linear-gradient(315deg, rgba(0, 210, 255, 0.2) 0%, rgba(0, 210, 255, 0.2) 22%, transparent 22.5%),
+    linear-gradient(rgba(13, 13, 13, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13, 13, 13, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 14px 14px, 14px 14px;
+  box-shadow: inset 0 0 0 2.5px #1D4ED8;
+}
+
+.card-front-style-geometric-red {
+  background-color: #FFFDF7;
+  background-image:
+    linear-gradient(135deg, rgba(255, 30, 66, 0.16) 0%, rgba(255, 30, 66, 0.16) 22%, transparent 22.5%),
+    linear-gradient(315deg, rgba(255, 230, 0, 0.34) 0%, rgba(255, 230, 0, 0.34) 22%, transparent 22.5%),
+    linear-gradient(rgba(13, 13, 13, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13, 13, 13, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 14px 14px, 14px 14px;
+  box-shadow: inset 0 0 0 2.5px #FF1E42;
+}
+
+/* Custom Card Style 3: POP (Electric Retro Arcade Checker-Accent Front) */
+.card-front-style-checker-black {
+  background-color: #FEFFEC;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(0, 230, 118, 0.28) 0%, transparent 62%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(13, 13, 13, 0.05) 0px,
+      rgba(13, 13, 13, 0.05) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  box-shadow: inset 0 0 0 3px #00E676;
+}
+
+.card-front-style-checker-red {
+  background-color: #FFF8FB;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(255, 230, 0, 0.44) 0%, transparent 62%),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 0, 153, 0.07) 0px,
+      rgba(255, 0, 153, 0.07) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  box-shadow: inset 0 0 0 3px #FFE600;
 }
 
 /* =========================================================

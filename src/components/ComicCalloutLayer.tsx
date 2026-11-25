@@ -24,29 +24,7 @@ export const ComicCalloutLayer: React.FC<{
             style={{ left: `${burst.x}px`, top: `${burst.y}px` }}
           >
             <svg viewBox="0 0 160 120" className="w-full h-full drop-shadow-[4px_4px_0_#0D0D0D]">
-              {gameplayTheme === 'warhol' ? (
-                <>
-                  <rect
-                    x="14"
-                    y="16"
-                    width="132"
-                    height="88"
-                    fill={burst.bgColor}
-                    stroke="#0D0D0D"
-                    strokeWidth="5"
-                  />
-                  <rect
-                    x="22"
-                    y="24"
-                    width="116"
-                    height="72"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeWidth="2.5"
-                    strokeDasharray="6 4"
-                  />
-                </>
-              ) : gameplayTheme === 'memphis' ? (
+              {gameplayTheme === 'memphis' ? (
                 <>
                   <rect
                     x="12"

@@ -3,9 +3,6 @@ import {
   Lightbulb,
   Undo2,
   RotateCcw,
-  Volume2,
-  VolumeX,
-  Music,
   Pause,
   Calendar,
 } from 'lucide-react';
@@ -87,13 +84,7 @@ const GAMEPLAY_THEME_STORAGE_KEY = 'pop_solitaire_gameplay_theme_v1';
 function loadSavedCardBack(): CardBackStyle {
   try {
     const raw = localStorage.getItem(CARD_BACK_STORAGE_KEY);
-    if (
-      raw === 'theme' ||
-      raw === 'dots' ||
-      raw === 'stripes' ||
-      raw === 'geometric' ||
-      raw === 'checker'
-    ) {
+    if (raw === 'theme' || raw === 'dots' || raw === 'geometric' || raw === 'checker') {
       return raw;
     }
   } catch {
@@ -105,13 +96,7 @@ function loadSavedCardBack(): CardBackStyle {
 function loadSavedGameplayTheme(): GameplayTheme {
   try {
     const raw = localStorage.getItem(GAMEPLAY_THEME_STORAGE_KEY);
-    if (
-      raw === 'comic' ||
-      raw === 'warhol' ||
-      raw === 'memphis' ||
-      raw === 'street' ||
-      raw === 'manga'
-    ) {
+    if (raw === 'comic' || raw === 'memphis' || raw === 'street' || raw === 'manga') {
       return raw;
     }
   } catch {
@@ -469,9 +454,11 @@ export default function App() {
 
   const handleSelectGameplayTheme = useCallback((theme: GameplayTheme) => {
     setGameplayTheme(theme);
+    setCardBackStyle('theme');
     soundEngine.playButton();
     try {
       localStorage.setItem(GAMEPLAY_THEME_STORAGE_KEY, theme);
+      localStorage.setItem(CARD_BACK_STORAGE_KEY, 'theme');
     } catch {
       // ignore storage errors
     }
@@ -745,68 +732,43 @@ export default function App() {
           {/* Multi-Layered Theme-Specific Pop Art Gameplay Tabletop Backdrop */}
           <GameplayBackdrop theme={gameplayTheme} />
 
-          {/* Responsive Pop Art Comic Game HUD with Yellow Safe-Top Fill */}
-          <header className="safe-top-yellow w-full border-b-[3.5px] border-[#0D0D0D] px-2 sm:px-4 pb-1.5 sm:pb-2 pt-1.5 sm:pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2 z-50 shadow-[0_4px_0_#0D0D0D] shrink-0 relative">
-            {/* Row 1 (mobile) / Left+Center (desktop): Brand, Draw Mode / Daily Tag, and Scoreboard */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto min-w-0">
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    soundEngine.playButton();
-                    setScreen('PAUSED');
-                  }}
-                  style={{
-                    backgroundColor: 'var(--hud-accent)',
-                    color: 'var(--hud-accent-text)',
-                  }}
-                  className="font-bangers text-base sm:text-xl md:text-2xl px-2 sm:px-2.5 py-0.5 rounded-lg border-[2.5px] border-[#0D0D0D] shadow-[2px_2px_0_#0D0D0D] -rotate-1 tracking-wider whitespace-nowrap cursor-pointer hover:brightness-105 transition-colors"
-                  title="Open Menu & Theme Customization"
-                >
-                  POP! SOLITAIRE
-                </button>
+          {/* Slim Single-Row Pop Yellow Top Scoreboard Bar (with Yellow Safe-Top Fill) */}
+          <header className="safe-top-yellow w-full border-b-[3.5px] border-[#0D0D0D] px-2 sm:px-4 pb-1.5 sm:pb-2 pt-1.5 sm:pt-2 z-50 shadow-[0_4px_0_#0D0D0D] shrink-0 relative">
+            <div className="w-full max-w-[1040px] mx-auto flex items-center justify-between gap-1.5 sm:gap-3">
+              {/* Left: Tilted Comic Brand Stamp */}
+              <button
+                type="button"
+                onClick={() => {
+                  soundEngine.playButton();
+                  setScreen('PAUSED');
+                }}
+                style={{
+                  backgroundColor: 'var(--hud-accent)',
+                  color: 'var(--hud-accent-text)',
+                }}
+                className="font-bangers text-base sm:text-xl md:text-2xl px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg border-[2.5px] sm:border-[3px] border-[#0D0D0D] shadow-[2.5px_2.5px_0_#0D0D0D] -rotate-2 tracking-wider whitespace-nowrap cursor-pointer hover:brightness-105 active:translate-y-0.5 transition-all shrink-0"
+                title="Open Menu & Theme Customization"
+              >
+                <span className="md:hidden">POP!</span>
+                <span className="hidden md:inline">POP! SOLITAIRE</span>
+              </button>
 
-                {gameState.isDailyChallenge ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      soundEngine.playButton();
-                      setScreen('PAUSED');
-                    }}
-                    className="hidden md:inline-flex pop-btn bg-[#FF0099] text-white font-bangers text-sm sm:text-base px-2.5 py-1 rounded-lg tracking-wide items-center gap-1 whitespace-nowrap"
-                    title="Daily Challenge · Pre-seeded worldwide layout"
-                  >
-                    <Calendar className="w-3.5 h-3.5 shrink-0" strokeWidth={2.8} />
-                    <span>DAILY · {todayDateLabel}</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleToggleDrawModeInGame}
-                    className="hidden md:inline-flex pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm sm:text-base px-2.5 py-1 rounded-lg tracking-wide whitespace-nowrap"
-                    title="Switch Draw 1 / Draw 3 and deal new game"
-                  >
-                    DRAW {drawMode}
-                  </button>
-                )}
-              </div>
-
-              {/* Clean Tabular Scoreboard Strip */}
-              <div className="bg-[#FFFDF7] border-[2.5px] border-[#0D0D0D] rounded-lg px-2 sm:px-3.5 py-0.5 sm:py-1 shadow-[2px_2px_0_#0D0D0D] flex items-center gap-2 sm:gap-3.5 tabular-nums shrink-0">
+              {/* Center: Crisp White Rectangular Comic Scoreboard */}
+              <div className="bg-[#FFFDF7] border-[2.5px] sm:border-[3px] border-[#0D0D0D] rounded-lg px-2 sm:px-4 py-1 shadow-[3px_3px_0_#0D0D0D] flex items-center justify-center gap-1.5 sm:gap-3.5 tabular-nums min-w-0">
                 <div className="flex items-baseline gap-1">
                   <span className="font-bangers text-[11px] sm:text-sm text-[#FF1E42] tracking-wide">SCORE</span>
                   <span className="font-bangers text-sm sm:text-xl text-[#0D0D0D] leading-none">
                     {gameState.score}
                   </span>
                 </div>
-                <span className="text-[#0D0D0D]/25 font-black select-none" aria-hidden="true">/</span>
+                <span className="w-[2px] h-3.5 sm:h-4 bg-[#0D0D0D]/25 rounded-full shrink-0" aria-hidden="true" />
                 <div className="flex items-baseline gap-1">
                   <span className="font-bangers text-[11px] sm:text-sm text-[#1D4ED8] tracking-wide">MOVES</span>
                   <span className="font-bangers text-sm sm:text-xl text-[#0D0D0D] leading-none">
                     {gameState.moves}
                   </span>
                 </div>
-                <span className="text-[#0D0D0D]/25 font-black select-none" aria-hidden="true">/</span>
+                <span className="w-[2px] h-3.5 sm:h-4 bg-[#0D0D0D]/25 rounded-full shrink-0" aria-hidden="true" />
                 <div className="flex items-baseline gap-1">
                   <span className="font-bangers text-[11px] sm:text-sm text-[#FF0099] tracking-wide">TIME</span>
                   <span className="font-bangers text-sm sm:text-xl text-[#0D0D0D] leading-none">
@@ -814,10 +776,8 @@ export default function App() {
                   </span>
                 </div>
               </div>
-            </div>
 
-            {/* Row 2 (mobile) / Right Zone (desktop): Full Action Toolbar */}
-            <div className="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto shrink-0">
+              {/* Right: Compact Draw Mode / Daily Challenge Chip */}
               {gameState.isDailyChallenge ? (
                 <button
                   type="button"
@@ -825,8 +785,8 @@ export default function App() {
                     soundEngine.playButton();
                     setScreen('PAUSED');
                   }}
-                  className="sm:hidden pop-btn bg-[#FF0099] text-white font-bangers text-sm px-2.5 py-1 rounded-lg tracking-wide inline-flex items-center gap-1 whitespace-nowrap shrink-0"
-                  title="Daily Challenge"
+                  className="pop-btn bg-[#FF0099] text-white font-bangers text-xs sm:text-base px-2 sm:px-3 py-1 rounded-lg tracking-wide inline-flex items-center gap-1 whitespace-nowrap shrink-0"
+                  title="Daily Challenge · Pre-seeded worldwide layout"
                 >
                   <Calendar className="w-3.5 h-3.5 shrink-0" strokeWidth={2.8} />
                   <span>DAILY</span>
@@ -835,85 +795,12 @@ export default function App() {
                 <button
                   type="button"
                   onClick={handleToggleDrawModeInGame}
-                  className="sm:hidden pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm px-2.5 py-1 rounded-lg tracking-wide whitespace-nowrap shrink-0"
-                  title="Switch Draw 1 / Draw 3"
+                  className="pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-xs sm:text-base px-2 sm:px-3 py-1 rounded-lg tracking-wide whitespace-nowrap shrink-0"
+                  title="Switch Draw 1 / Draw 3 and deal new game"
                 >
                   DRAW {drawMode}
                 </button>
               )}
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleHint}
-                  className="pop-btn bg-[#FFFDF7] text-[#0D0D0D] font-bangers text-sm sm:text-base px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center gap-1 whitespace-nowrap"
-                  title="Show Legal Move Hint (H)"
-                  aria-label="Hint"
-                >
-                  <Lightbulb className="w-4 h-4 text-[#FF1E42]" strokeWidth={2.8} />
-                  <span className="hidden lg:inline">HINT</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleUndo}
-                  disabled={undoStack.length === 0 || isAutoCompleting}
-                  className="pop-btn bg-[#00D2FF] text-[#0D0D0D] font-bangers text-sm sm:text-base px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center gap-1 whitespace-nowrap"
-                  title="Undo Move (Z)"
-                  aria-label="Undo"
-                >
-                  <Undo2 className="w-4 h-4" strokeWidth={2.8} />
-                  <span className="hidden lg:inline">UNDO</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleToggleMusic}
-                  className={`hidden lg:flex pop-btn px-2 py-1.5 rounded-lg items-center justify-center ${
-                    musicEnabled ? 'bg-[#FFFDF7] text-[#1D4ED8]' : 'bg-white/60 text-[#0D0D0D]/40'
-                  }`}
-                  title={musicEnabled ? 'Mute Music (M)' : 'Enable Music (M)'}
-                  aria-label="Toggle Music"
-                >
-                  <Music className="w-4 h-4" strokeWidth={2.8} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleToggleSfx}
-                  className={`hidden lg:flex pop-btn px-2 py-1.5 rounded-lg items-center justify-center ${
-                    sfxEnabled ? 'bg-[#FFFDF7] text-[#0D0D0D]' : 'bg-white/60 text-[#0D0D0D]/40'
-                  }`}
-                  title={sfxEnabled ? 'Mute SFX' : 'Enable SFX'}
-                  aria-label="Toggle Sound Effects"
-                >
-                  {sfxEnabled ? <Volume2 className="w-4 h-4" strokeWidth={2.8} /> : <VolumeX className="w-4 h-4" strokeWidth={2.8} />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDealOrRestart}
-                  className="pop-btn bg-[#FF1E42] text-white font-bangers text-sm sm:text-base px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center gap-1 whitespace-nowrap"
-                  title={gameState.isDailyChallenge ? 'Restart Today’s Daily Deal' : 'Deal New Game'}
-                  aria-label={gameState.isDailyChallenge ? 'Restart Daily' : 'New Deal'}
-                >
-                  <RotateCcw className="w-4 h-4" strokeWidth={2.8} />
-                  <span className="hidden md:inline">{gameState.isDailyChallenge ? 'RETRY' : 'DEAL'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    soundEngine.playButton();
-                    setScreen('PAUSED');
-                  }}
-                  className="pop-btn bg-[#FFFDF7] text-[#0D0D0D] px-2 py-1 sm:py-1.5 rounded-lg flex items-center justify-center"
-                  title="Pause, Settings & Theme Customization (Esc)"
-                  aria-label="Pause Menu"
-                >
-                  <Pause className="w-4 h-4" strokeWidth={2.8} />
-                </button>
-              </div>
             </div>
           </header>
 
@@ -938,6 +825,80 @@ export default function App() {
             onDragStartSfx={() => soundEngine.playCardLift()}
             onInvalidMoveSfx={() => soundEngine.playError()}
           />
+
+          {/* Floating Pop Art Bottom Thumb Dock (Design 1) */}
+          <nav
+            aria-label="Gameplay Controls"
+            className="w-full px-3 pt-1 pb-[max(0.65rem,env(safe-area-inset-bottom))] z-40 shrink-0 pointer-events-none relative"
+          >
+            <div className="pointer-events-auto w-full max-w-[430px] mx-auto bg-[#FFFDF7] border-[3px] sm:border-[3.5px] border-[#0D0D0D] rounded-2xl shadow-[5px_5px_0_#0D0D0D] p-1.5 sm:p-2 grid grid-cols-4 gap-1.5 sm:gap-2">
+              {/* 1. HINT */}
+              <button
+                type="button"
+                onClick={handleHint}
+                disabled={isAutoCompleting}
+                className="pop-btn bg-[#FFE600] hover:bg-[#FFF04D] text-[#0D0D0D] rounded-xl py-1.5 sm:py-2 px-1 flex flex-col items-center justify-center gap-0.5"
+                title="Show Legal Move Hint (H)"
+                aria-label="Hint"
+              >
+                <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-[#0D0D0D]" strokeWidth={2.8} />
+                <span className="font-bangers text-sm sm:text-base tracking-wider leading-none">
+                  HINT
+                </span>
+              </button>
+
+              {/* 2. UNDO */}
+              <button
+                type="button"
+                onClick={handleUndo}
+                disabled={undoStack.length === 0 || isAutoCompleting}
+                className="pop-btn bg-[#00D2FF] hover:bg-[#33DDFF] text-[#0D0D0D] rounded-xl py-1.5 sm:py-2 px-1 flex flex-col items-center justify-center gap-0.5 relative"
+                title="Undo Last Move (Z)"
+                aria-label="Undo"
+              >
+                <Undo2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#0D0D0D]" strokeWidth={2.8} />
+                <span className="font-bangers text-sm sm:text-base tracking-wider leading-none">
+                  UNDO
+                </span>
+                {undoStack.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FFE600] border-2 border-[#0D0D0D] text-[#0D0D0D] font-bangers text-[11px] leading-none flex items-center justify-center tabular-nums shadow-[1px_1px_0_#0D0D0D]">
+                    {undoStack.length > 99 ? '99+' : undoStack.length}
+                  </span>
+                )}
+              </button>
+
+              {/* 3. DEAL / RETRY */}
+              <button
+                type="button"
+                onClick={handleDealOrRestart}
+                className="pop-btn bg-[#FF1E42] hover:bg-[#FF3355] text-white rounded-xl py-1.5 sm:py-2 px-1 flex flex-col items-center justify-center gap-0.5"
+                title={gameState.isDailyChallenge ? 'Restart Today’s Daily Deal' : 'Deal New Game'}
+                aria-label={gameState.isDailyChallenge ? 'Retry Daily' : 'New Deal'}
+              >
+                <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-white" strokeWidth={2.8} />
+                <span className="font-bangers text-sm sm:text-base tracking-wider leading-none">
+                  {gameState.isDailyChallenge ? 'RETRY' : 'DEAL'}
+                </span>
+              </button>
+
+              {/* 4. MENU / PAUSE */}
+              <button
+                type="button"
+                onClick={() => {
+                  soundEngine.playButton();
+                  setScreen('PAUSED');
+                }}
+                className="pop-btn bg-[#FFFDF7] hover:bg-[#F3EFE6] text-[#0D0D0D] rounded-xl py-1.5 sm:py-2 px-1 flex flex-col items-center justify-center gap-0.5"
+                title="Pause, Theme & Card Customization (Esc)"
+                aria-label="Menu"
+              >
+                <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-[#0D0D0D]" strokeWidth={2.8} />
+                <span className="font-bangers text-sm sm:text-base tracking-wider leading-none">
+                  MENU
+                </span>
+              </button>
+            </div>
+          </nav>
 
           {/* Pause & Theme/Card Customization Modal */}
           {screen === 'PAUSED' && (

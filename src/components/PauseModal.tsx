@@ -30,13 +30,6 @@ const GAMEPLAY_THEME_OPTIONS: {
     accentColor: '#FFE600',
   },
   {
-    id: 'warhol',
-    label: 'Warhol',
-    previewClass: 'gameplay-theme-warhol',
-    dotColor: '#FF0099',
-    accentColor: '#00E5FF',
-  },
-  {
     id: 'memphis',
     label: 'Memphis',
     previewClass: 'gameplay-theme-memphis',
@@ -175,16 +168,21 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           )}
         </div>
 
-        {/* Customization Section 1: Card Style */}
+        {/* Customization Section 1: Card Style (4 options — changes both card front & back) */}
         <div className="bg-[#00D2FF]/15 border-[2.5px] border-[#0D0D0D] rounded-xl p-3 mb-3.5">
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <Palette className="w-4 h-4 text-[#FF0099]" strokeWidth={2.8} />
-            <h3 className="font-bangers text-xl tracking-wide text-[#0D0D0D] leading-none">
-              Customization - Card Style
-            </h3>
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <Palette className="w-4 h-4 text-[#FF0099]" strokeWidth={2.8} />
+              <h3 className="font-bangers text-xl tracking-wide text-[#0D0D0D] leading-none">
+                Customization - Card Style
+              </h3>
+            </div>
+            <span className="text-[10px] font-extrabold uppercase tracking-wide text-[#0D0D0D]/60">
+              Front &amp; Back
+            </span>
           </div>
 
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-4 gap-2">
             {CARD_BACK_OPTIONS.map((option) => {
               const isSelected = cardBackStyle === option.id;
               return (
@@ -193,21 +191,21 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   type="button"
                   onClick={() => onSelectCardBack(option.id)}
                   aria-pressed={isSelected}
-                  className={`group flex flex-col items-center gap-1 p-1 rounded-xl border-2 transition-all cursor-pointer ${
+                  className={`group flex flex-col items-center justify-between gap-1.5 p-1.5 rounded-xl border-2 transition-all cursor-pointer overflow-hidden min-w-0 ${
                     isSelected
-                      ? 'bg-[#FFE600] border-[#0D0D0D] shadow-[2.5px_2.5px_0_#0D0D0D] -translate-y-0.5'
+                      ? 'bg-[#FFE600] border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] -translate-y-0.5'
                       : 'bg-[#FFFDF7] border-[#0D0D0D]/30 hover:border-[#0D0D0D]'
                   }`}
                 >
-                  <div className="relative w-10 h-14 sm:w-12 sm:h-16 rounded-md border-2 border-[#0D0D0D] overflow-hidden shadow-[1.5px_1.5px_0_#0D0D0D] shrink-0">
+                  <div className="relative w-11 h-15 sm:w-13 sm:h-18 rounded-md border-2 border-[#0D0D0D] overflow-hidden shadow-[1.5px_1.5px_0_#0D0D0D] shrink-0">
                     <CardBackGraphic styleVariant={option.id} gameplayTheme={gameplayTheme} />
                     {isSelected && (
-                      <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#00E676] border border-[#0D0D0D] flex items-center justify-center">
+                      <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#00E676] border border-[#0D0D0D] flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 text-[#0D0D0D]" strokeWidth={3.5} />
                       </div>
                     )}
                   </div>
-                  <span className="font-bangers text-[11px] tracking-wide text-[#0D0D0D] leading-none text-center whitespace-nowrap">
+                  <span className="w-full px-0.5 font-bangers text-[11px] sm:text-xs tracking-wide text-[#0D0D0D] leading-[1.08] text-center break-words">
                     {option.label}
                   </span>
                 </button>
@@ -216,7 +214,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           </div>
         </div>
 
-        {/* Customization Section 2: Gameplay Theme (Comic default + Warhol, Memphis, Street, Manga) */}
+        {/* Customization Section 2: Gameplay Theme (4 themes — Comic default, Memphis, Street, Manga) */}
         <div className="bg-[#FFE600]/20 border-[2.5px] border-[#0D0D0D] rounded-xl p-3 mb-5">
           <div className="flex items-center justify-between gap-2 mb-2.5">
             <div className="flex items-center gap-1.5">
@@ -230,7 +228,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-4 gap-2">
             {GAMEPLAY_THEME_OPTIONS.map((t) => {
               const isSelected = gameplayTheme === t.id;
               return (
@@ -239,16 +237,15 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                   type="button"
                   onClick={() => onSelectGameplayTheme(t.id)}
                   aria-pressed={isSelected}
-                  className={`flex flex-col items-center gap-1 p-1 rounded-xl border-2 transition-all cursor-pointer ${
+                  className={`flex flex-col items-center gap-1.5 p-1.5 rounded-xl border-2 transition-all cursor-pointer overflow-hidden min-w-0 ${
                     isSelected
-                      ? 'bg-[#FFE600] border-[#0D0D0D] shadow-[2.5px_2.5px_0_#0D0D0D] -translate-y-0.5'
+                      ? 'bg-[#FFE600] border-[#0D0D0D] shadow-[3px_3px_0_#0D0D0D] -translate-y-0.5'
                       : 'bg-[#FFFDF7] border-[#0D0D0D]/30 hover:border-[#0D0D0D]'
                   }`}
                 >
                   <div
-                    className={`relative w-full h-11 rounded-lg border-2 border-[#0D0D0D] shadow-[1.5px_1.5px_0_#0D0D0D] overflow-hidden flex items-center justify-center ${t.previewClass}`}
+                    className={`relative w-full h-11 sm:h-12 rounded-lg border-2 border-[#0D0D0D] shadow-[1.5px_1.5px_0_#0D0D0D] overflow-hidden flex items-center justify-center ${t.previewClass}`}
                   >
-                    {/* Mini Theme Swatch Accent Dots */}
                     <div className="flex items-center gap-1">
                       <span
                         className="w-3 h-3 rounded-full border-[1.5px] border-[#0D0D0D]"
@@ -260,12 +257,12 @@ export const PauseModal: React.FC<PauseModalProps> = ({
                       />
                     </div>
                     {isSelected && (
-                      <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#00E676] border border-[#0D0D0D] flex items-center justify-center">
+                      <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#00E676] border border-[#0D0D0D] flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 text-[#0D0D0D]" strokeWidth={3.5} />
                       </div>
                     )}
                   </div>
-                  <span className="font-bangers text-xs tracking-wide text-[#0D0D0D] leading-none text-center whitespace-nowrap">
+                  <span className="w-full px-0.5 font-bangers text-xs tracking-wide text-[#0D0D0D] leading-[1.08] text-center truncate">
                     {t.label}
                   </span>
                 </button>

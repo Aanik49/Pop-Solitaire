@@ -363,7 +363,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <main
       ref={boardRef}
-      className="flex-1 w-full max-w-[1040px] mx-auto px-2 sm:px-4 pt-3 pb-2 flex flex-col gap-6 sm:gap-8 relative z-10 overflow-hidden"
+      className="flex-1 min-h-0 w-full max-w-[1040px] mx-auto px-2 sm:px-4 pt-3 pb-1 flex flex-col gap-5 sm:gap-7 relative z-10 overflow-hidden"
     >
       {/* Top Row: Stock, Waste (with extra visual gap), Spacer, and 4 Foundations */}
       <section
@@ -432,6 +432,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               <PlayingCardView
                 key={card.id}
                 card={card}
+                cardBackStyle={cardBackStyle}
                 gameplayTheme={gameplayTheme}
                 isPlayable={isTop}
                 isHinted={hintedSet.has(card.id)}
@@ -490,6 +491,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               {secondCard && isTopDragged && (
                 <PlayingCardView
                   card={secondCard}
+                  cardBackStyle={cardBackStyle}
                   gameplayTheme={gameplayTheme}
                   isPlayable={false}
                   style={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
@@ -500,6 +502,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <PlayingCardView
                   key={topCard.id}
                   card={topCard}
+                  cardBackStyle={cardBackStyle}
                   gameplayTheme={gameplayTheme}
                   isPlayable={true}
                   isHinted={hintedSet.has(topCard.id)}
@@ -643,6 +646,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <PlayingCardView
               key={`drag-${card.id}`}
               card={card}
+              cardBackStyle={cardBackStyle}
               gameplayTheme={gameplayTheme}
               isPlayable={false}
               isDragging={true}
